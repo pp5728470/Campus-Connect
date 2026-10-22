@@ -1,0 +1,39 @@
+---
+description: CampusConnect project rules
+alwaysApply: true
+---
+
+# CampusConnect – Project Rules
+
+CampusConnect is a classroom management web app (similar to Google Classroom) built as an MCA final mini project. It must be fully working, clean, and professional.
+
+## Structure
+- Monorepo: /backend (Spring Boot) and /frontend (React).
+- Backend: Java 21, Spring Boot 3, Maven, Spring Web, Spring Data JPA, Spring Security with JWT (access + refresh tokens), Bean Validation, Flyway, MySQL 8, springdoc-openapi, Lombok.
+- Backend packages: com.campusconnect.{config, security, controller, service, repository, entity, dto, mapper, exception, util}.
+- Use DTOs for all requests/responses; never expose entities directly.
+- Use a global exception handler returning a consistent JSON error format: { timestamp, status, error, message, path }.
+- Role-based access: TEACHER and STUDENT (plus ADMIN in phase 3). Enforce authorization in the service layer too (e.g., only the class owner can edit a class; only enrolled students can view it).
+- Passwords hashed with BCrypt. Secrets and DB credentials come from application.yml with environment variable overrides.
+- All schema changes via Flyway migrations (V1__init.sql, V2__..., etc.). Never use ddl-auto=update.
+- Paginate list endpoints.
+
+- Frontend: React 18 + Vite + TypeScript, Tailwind CSS, React Router, TanStack Query, Axios (with an interceptor for JWT and token refresh), React Hook Form + Zod, Lucide icons.
+- Frontend folders: src/{api, components/ui, components/layout, features/<feature>, hooks, lib, pages, routes, types}.
+
+## Design rules (very important)
+The UI must look natural and hand-designed, NOT AI-generated.
+- No gradients, no glassmorphism, no glowing effects, no emojis anywhere in the UI.
+- One accent color only: #1A73E8 (used for primary buttons, active states, links). Neutral palette otherwise: background #F8F9FA, surface #FFFFFF, border #E3E5E8, text #1F2328, secondary text #5F6368.
+- Flat cards with 1px borders, no heavy shadows. Border radius 8px everywhere.
+- Font: Inter. Sizes: 24 (page title), 18 (section title), 14 (body), 12 (meta). Use weight for hierarchy, not color.
+- Spacing scale: 4, 8, 12, 16, 24, 32. Never arbitrary values.
+- Layout inspired by Google Classroom: top bar, collapsible left sidebar listing classes, class banner, tabs (Stream, Classwork, Materials, People, Grades).
+- Every list has a proper empty state, a loading skeleton, and an error state.
+- Use relative dates ("2 days ago"), status labels ("Due tomorrow", "Missing", "Graded") in small colored text.
+- Fully responsive (mobile, tablet, desktop). Accessible: proper labels, focus states, keyboard navigation.
+- Seed data must look realistic (Indian college context: real-sounding names, subjects like "Advanced Java – MCA Sem II").
+
+## Code quality
+- Clean, readable, commented where useful. No dead code, no TODO placeholders, no mock data in production code paths.
+- After finishing a task, make sure backend compiles and frontend builds with no TypeScript errors.
