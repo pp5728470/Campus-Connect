@@ -1,9 +1,12 @@
-import { BookOpen, ClipboardList, FolderOpen, GraduationCap, Megaphone } from 'lucide-react'
+import { BookOpen, GraduationCap } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { ClassBanner, ClassBannerSkeleton } from '@/features/classrooms/ClassBanner'
+import { ClassworkTab } from '@/features/classwork/ClassworkTab'
+import { MaterialsTab } from '@/features/materials/MaterialsTab'
+import { StreamTab } from '@/features/stream/StreamTab'
 import { PeopleTab } from '@/features/classrooms/PeopleTab'
 import { useClassroom } from '@/hooks/use-classrooms'
 import { useAuth } from '@/lib/auth-context'
@@ -15,29 +18,6 @@ const TABS: TabItem[] = [
   { id: 'people', label: 'People' },
   { id: 'grades', label: 'Grades' },
 ]
-
-const placeholders: Record<string, { icon: typeof Megaphone; title: string; description: string }> = {
-  stream: {
-    icon: Megaphone,
-    title: 'Stream is coming soon',
-    description: 'Announcements and class discussions will appear here.',
-  },
-  classwork: {
-    icon: ClipboardList,
-    title: 'Classwork is coming soon',
-    description: 'Assignments and quizzes will appear here.',
-  },
-  materials: {
-    icon: FolderOpen,
-    title: 'Materials are coming soon',
-    description: 'Notes and reference files shared by the teacher will appear here.',
-  },
-  grades: {
-    icon: GraduationCap,
-    title: 'Grades are coming soon',
-    description: 'Marks and feedback will appear here.',
-  },
-}
 
 export default function ClassPage() {
   const { id, tab } = useParams()
@@ -80,8 +60,6 @@ export default function ClassPage() {
     )
   }
 
-  const placeholder = placeholders[activeTab]
-
   return (
     <div className="flex flex-col gap-4">
       <ClassBanner classroom={classroom} />
@@ -93,12 +71,19 @@ export default function ClassPage() {
         onChange={(next) => navigate(`/classes/${classroom.id}/${next}`)}
       />
       <div id="class-panel" role="tabpanel" aria-labelledby={`class-tab-${activeTab}`} tabIndex={0}>
-        {activeTab === 'people' ? (
-          <PeopleTab classroom={classroom} currentUserId={user.id} />
-        ) : (
-          placeholder && <EmptyState icon={placeholder.icon} title={placeholder.title} description={placeholder.description} />
+        {activeTab === 'stream' && <StreamTab classroom={classroom} currentUserId={user.id} />}
+        {activeTab === 'classwork' && <ClassworkTab classroom={classroom} />}
+        {activeTab === 'materials' && <MaterialsTab classroom={classroom} />}
+        {activeTab === 'people' && <PeopleTab classroom={classroom} currentUserId={user.id} />}
+        {activeTab === 'grades' && (
+          <EmptyState
+            icon={GraduationCap}
+            title="No grades to show yet"
+            description="Marks and feedback appear here once graded work is returned."
+          />
         )}
       </div>
     </div>
   )
 }
+

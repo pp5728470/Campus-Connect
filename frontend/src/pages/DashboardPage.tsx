@@ -2,6 +2,7 @@ import { BookOpen, Plus, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { TodoSection } from '@/features/assignments/TodoSection'
 import { ClassCard, ClassCardSkeleton } from '@/features/classrooms/ClassCard'
 import { CreateClassModal } from '@/features/classrooms/CreateClassModal'
 import { JoinClassModal } from '@/features/classrooms/JoinClassModal'
@@ -83,6 +84,8 @@ export default function DashboardPage() {
           ))}
         </ul>
       )}
+
+      {user?.role === 'STUDENT' && <TodoSection />}
 
       <CreateClassModal open={createOpen} onClose={() => setCreateOpen(false)} />
       <JoinClassModal open={joinOpen} onClose={() => setJoinOpen(false)} />

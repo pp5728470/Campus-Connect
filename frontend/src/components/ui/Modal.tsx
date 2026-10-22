@@ -1,11 +1,14 @@
 import { X } from 'lucide-react'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { cn } from '@/lib/cn'
 
 interface ModalProps {
   open: boolean
   onClose: () => void
   title: string
   description?: string
+  /** lg is used for previews that need more room. */
+  size?: 'md' | 'lg'
   children: ReactNode
 }
 
@@ -13,7 +16,7 @@ interface ModalProps {
  * Dialog built on the native <dialog> element, which provides focus trapping,
  * Escape handling and an inert background.
  */
-export function Modal({ open, onClose, title, description, children }: ModalProps) {
+export function Modal({ open, onClose, title, description, size = 'md', children }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
 
@@ -36,7 +39,10 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
       onMouseDown={(event) => {
         if (event.target === ref.current) onClose()
       }}
-      className="m-auto w-full max-w-lg rounded-lg border border-border bg-surface p-0 text-ink backdrop:bg-black/40"
+      className={cn(
+        'm-auto w-full rounded-lg border border-border bg-surface p-0 text-ink backdrop:bg-black/40',
+        size === 'lg' ? 'max-w-4xl' : 'max-w-lg',
+      )}
     >
       {open && (
         <div className="flex max-h-[calc(100vh-32px)] flex-col">
@@ -62,3 +68,4 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
     </dialog>
   )
 }
+

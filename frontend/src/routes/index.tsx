@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
+import AssignmentDetailPage from '@/pages/AssignmentDetailPage'
 import ClassPage from '@/pages/ClassPage'
 import DashboardPage from '@/pages/DashboardPage'
 import LoginPage from '@/pages/LoginPage'
@@ -18,6 +19,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/classes/:classId/assignments/:assignmentId" element={<AssignmentDetailPage />} />
           <Route path="/classes/:id/:tab?" element={<ClassPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>

@@ -30,6 +30,7 @@ Default connection (override with env vars):
 | `DB_USER`     | `root`        |
 | `DB_PASSWORD` | `root`        |
 | `JWT_SECRET`  | (dev secret in `application.yml`) |
+| `UPLOAD_DIR`  | `./uploads`   |
 
 ## Run backend
 
@@ -48,7 +49,7 @@ cd backend
 - API: http://localhost:8080
 - Swagger UI: http://localhost:8080/swagger-ui.html
 
-Flyway runs `V1__init.sql` on startup (`ddl-auto=validate`).
+Flyway runs `V1__init.sql` and `V2__classwork.sql` on startup (`ddl-auto=validate`). Uploaded files are stored under `UPLOAD_DIR` (default `./uploads`).
 
 ## Run frontend
 
@@ -60,18 +61,24 @@ npm run dev
 
 App: http://localhost:5173 (CORS is configured for this origin).
 
-## Seed data (Phase 1)
+## Seed data
 
 After the backend has migrated the schema once:
 
 ```bash
 mysql -u root -p campusconnect < backend/src/main/resources/db/seed/seed_phase1.sql
+mysql -u root -p campusconnect < backend/src/main/resources/db/seed/seed_phase2.sql
 ```
 
-Seed includes:
+Phase 1 seed:
 
 - 2 teachers, 8 students
 - 3 classes (Advanced Java, DBMS, Web Technologies Lab)
+
+Phase 2 seed:
+
+- Topics, stream announcements + comments
+- Materials metadata, assignments, mixed submissions (submitted / late / missing / graded / returned)
 
 All seed accounts use password: `Password@123`
 
@@ -80,9 +87,19 @@ Example logins:
 - Teacher: `ananya.krishnan@college.edu`
 - Student: `aarav.mehta@student.college.edu`
 
-## Phase 1 features
+## Features
+
+### Phase 1
 
 - Register / login / refresh / logout (JWT access 15 min + refresh 7 days)
 - Teachers create, edit, archive classes and regenerate class codes
 - Students join via class code
 - Dashboard, class shell with tabs, People tab, profile
+
+### Phase 2
+
+- Stream: announcements, pin/unpin, comments, attachments
+- Topics to group classwork and materials
+- Study materials with upload/download (max 25 MB; PDF, Office, images, ZIP)
+- Assignments, student submissions, teacher grading and return
+- Student dashboard To-do (upcoming and missing work)

@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: campusconnect
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 60MB
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:campusconnect}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USER:root}
@@ -28,6 +32,9 @@ app:
     refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  upload:
+    dir: ${UPLOAD_DIR:./uploads}
+    max-file-size-bytes: ${UPLOAD_MAX_BYTES:26214400}
 
 springdoc:
   api-docs:

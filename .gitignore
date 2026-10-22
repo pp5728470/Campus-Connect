@@ -1,3 +1,7 @@
+# Uploads
+uploads/
+backend/uploads/
+
 # Backend
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
