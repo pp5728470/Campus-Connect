@@ -1,0 +1,28 @@
+%PDF-1.4
+1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj
+2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj
+3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources<< /Font<< /F1 5 0 R >> >> >>endobj
+4 0 obj<< /Length 379 >>stream
+BT /F1 16 Tf 50 750 Td (Servlet Lifecycle Notes) Tj
+/F1 11 Tf
+0 -18 Td (init\(\) - called once when the servlet is loaded) Tj
+0 -18 Td (service\(\) - handles each request via doGet/doPost) Tj
+0 -18 Td (destroy\(\) - cleanup before the servlet is unloaded) Tj
+0 -18 Td (Request -> Container -> Servlet -> Response) Tj
+0 -18 Td (Use RequestDispatcher for forward and include) Tj
+ET
+endstream
+endobj
+5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000056 00000 n 
+0000000111 00000 n 
+0000000233 00000 n 
+0000000661 00000 n 
+trailer<< /Size 6 /Root 1 0 R >>
+startxref
+729
+%%EOF

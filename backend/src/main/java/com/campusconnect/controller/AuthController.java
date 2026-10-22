@@ -1,6 +1,10 @@
 package com.campusconnect.controller;
 
 import com.campusconnect.dto.auth.AuthResponse;
+import com.campusconnect.dto.auth.ChangePasswordRequest;
+import com.campusconnect.dto.auth.ForgotPasswordRequest;
+import com.campusconnect.dto.auth.ResetPasswordRequest;
+import com.campusconnect.dto.common.MessageResponse;
 import com.campusconnect.dto.auth.LoginRequest;
 import com.campusconnect.dto.auth.RefreshTokenRequest;
 import com.campusconnect.dto.auth.RegisterRequest;
@@ -45,6 +49,24 @@ public class AuthController {
     @Operation(summary = "Revoke refresh tokens for current user")
     public void logout() {
         authService.logout();
+    }
+
+    @PostMapping("/change-password")
+    @Operation(summary = "Change password; all sessions are revoked and new tokens are returned")
+    public AuthResponse changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        return authService.changePassword(request);
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request a password reset link (always returns 200)")
+    public MessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return authService.forgotPassword(request);
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Set a new password using a reset token")
+    public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return authService.resetPassword(request);
     }
 
     @GetMapping("/me")

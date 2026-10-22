@@ -1,4 +1,4 @@
-import type { AuthResponse, Role, User } from '@/types'
+import type { AuthResponse, MessageResponse, Role, User } from '@/types'
 import { api } from './client'
 
 export interface RegisterPayload {
@@ -18,4 +18,11 @@ export const authApi = {
   login: (payload: LoginPayload) => api.post<AuthResponse>('/auth/login', payload).then((r) => r.data),
   logout: () => api.post<void>('/auth/logout').then(() => undefined),
   me: () => api.get<User>('/auth/me').then((r) => r.data),
+  /** Returns fresh tokens because the server revokes every other session. */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post<AuthResponse>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.data),
+  forgotPassword: (email: string) =>
+    api.post<MessageResponse>('/auth/forgot-password', { email }).then((r) => r.data),
+  resetPassword: (token: string, newPassword: string) =>
+    api.post<MessageResponse>('/auth/reset-password', { token, newPassword }).then((r) => r.data),
 }

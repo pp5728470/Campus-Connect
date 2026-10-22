@@ -26,4 +26,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     long countByAssignmentIdAndStatusIn(Long assignmentId, Collection<SubmissionStatus> statuses);
 
     List<Submission> findByStudentIdAndAssignmentClassroomIdIn(Long studentId, Collection<Long> classroomIds);
+
+    @Query("""
+            SELECT s FROM Submission s
+            JOIN FETCH s.assignment a
+            WHERE a.classroom.id = :classroomId
+            """)
+    List<Submission> findAllForClassroom(@Param("classroomId") Long classroomId);
 }

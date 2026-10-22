@@ -9,6 +9,7 @@ export interface User {
   email: string
   role: Role
   avatarUrl: string | null
+  active: boolean
   createdAt: string
 }
 
@@ -220,4 +221,161 @@ export interface TodoItem {
   dueAt: string | null
   maxPoints: number
   status: SubmissionStatus
+}
+
+/* ---------- Notifications ---------- */
+
+export type NotificationType = 'ANNOUNCEMENT' | 'ASSIGNMENT' | 'MATERIAL' | 'GRADED' | 'DUE_TOMORROW'
+
+export interface AppNotification {
+  id: number
+  type: NotificationType
+  title: string
+  body: string | null
+  link: string | null
+  classroomId: number | null
+  classroomName?: string | null
+  read: boolean
+  createdAt: string
+}
+
+/* ---------- Grades ---------- */
+
+export interface GradebookAssignment {
+  id: number
+  title: string
+  maxPoints: number
+  dueAt: string | null
+  averagePercent: number | null
+}
+
+export interface GradebookCell {
+  assignmentId: number
+  status: SubmissionStatus
+  grade: number | null
+  percent: number | null
+}
+
+export interface GradebookRow {
+  studentId: number
+  studentName: string
+  studentEmail: string
+  /** Same order as the gradebook's assignments. */
+  cells: GradebookCell[]
+  averagePercent: number | null
+}
+
+export interface Gradebook {
+  classroomId: number
+  classroomName: string
+  assignments: GradebookAssignment[]
+  rows: GradebookRow[]
+  classAveragePercent: number | null
+}
+
+export interface StudentGradeItem {
+  assignmentId: number
+  title: string
+  maxPoints: number
+  dueAt: string | null
+  status: SubmissionStatus
+  grade: number | null
+  percent: number | null
+  feedback: string | null
+}
+
+export interface StudentGrades {
+  classroomId: number
+  classroomName: string
+  items: StudentGradeItem[]
+  gradedCount: number
+  totalCount: number
+  averagePercent: number | null
+}
+
+export interface AssignmentStat {
+  assignmentId: number
+  title: string
+  totalStudents: number
+  submitted: number
+  graded: number
+  missing: number
+  /** Share of enrolled students who handed in, 0-100. */
+  submissionRate: number
+  averagePercent: number | null
+}
+
+export interface GradeBucket {
+  label: string
+  count: number
+}
+
+export interface ClassAnalytics {
+  classroomId: number
+  studentCount: number
+  assignmentCount: number
+  classAveragePercent: number | null
+  assignments: AssignmentStat[]
+  distribution: GradeBucket[]
+}
+
+/* ---------- Calendar ---------- */
+
+export interface CalendarEvent {
+  assignmentId: number
+  classroomId: number
+  classroomName: string
+  title: string
+  dueAt: string
+  maxPoints: number
+  /** Only set for students. */
+  status: SubmissionStatus | null
+  link: string
+}
+
+/* ---------- Search ---------- */
+
+export type SearchResultType = 'CLASS' | 'ASSIGNMENT' | 'MATERIAL'
+
+export interface SearchResult {
+  type: SearchResultType
+  id: number
+  title: string
+  subtitle: string | null
+  classroomId: number | null
+  link: string
+}
+
+export interface SearchResponse {
+  query: string
+  results: SearchResult[]
+}
+
+/* ---------- Admin ---------- */
+
+export interface AdminStats {
+  totalUsers: number
+  totalTeachers: number
+  totalStudents: number
+  totalAdmins: number
+  totalClasses: number
+  totalSubmissions: number
+  storageBytes: number
+}
+
+export interface AdminClassroom {
+  id: number
+  name: string
+  section: string | null
+  subject: string | null
+  classCode: string
+  ownerId: number
+  ownerName: string
+  archived: boolean
+  studentCount: number
+  createdAt: string
+}
+
+export interface MessageResponse {
+  message: string
 }

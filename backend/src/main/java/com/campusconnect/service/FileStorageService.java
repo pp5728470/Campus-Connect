@@ -143,11 +143,13 @@ public class FileStorageService {
         try {
             Path path = rootDir.resolve(file.getStoredName()).normalize();
             if (!path.startsWith(rootDir) || !Files.exists(path)) {
-                throw new ApiException(HttpStatus.NOT_FOUND, "File not found on disk");
+                throw new ApiException(HttpStatus.NOT_FOUND,
+                        "This file is missing on the server. Re-upload it or start the backend with the dev profile after seeding.");
             }
             Resource resource = new UrlResource(path.toUri());
             if (!resource.exists() || !resource.isReadable()) {
-                throw new ApiException(HttpStatus.NOT_FOUND, "File not found on disk");
+                throw new ApiException(HttpStatus.NOT_FOUND,
+                        "This file is missing on the server. Re-upload it or start the backend with the dev profile after seeding.");
             }
             return resource;
         } catch (MalformedURLException ex) {

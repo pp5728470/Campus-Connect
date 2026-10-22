@@ -12,6 +12,8 @@ interface AuthContextValue {
   login: (payload: LoginPayload) => Promise<User>
   register: (payload: RegisterPayload) => Promise<User>
   logout: () => Promise<void>
+  /** Verifies the current password and swaps in the fresh session tokens the server returns. */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -70,9 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear()
   }, [queryClient])
 
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      startSession(await authApi.changePassword(currentPassword, newPassword))
+    },
+    [startSession],
+  )
+
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout }),
-    [user, isLoading, login, register, logout],
+    () => ({ user, isLoading, login, register, logout, changePassword }),
+    [user, isLoading, login, register, logout, changePassword],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

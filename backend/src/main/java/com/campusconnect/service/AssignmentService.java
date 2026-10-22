@@ -10,6 +10,7 @@ import com.campusconnect.repository.SubmissionRepository;
 import com.campusconnect.repository.UserRepository;
 import com.campusconnect.security.SecurityUtils;
 import com.campusconnect.security.UserPrincipal;
+import com.campusconnect.util.SubmissionStatusResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class AssignmentService {
     private final ClassroomAccessService classroomAccessService;
     private final TopicService topicService;
     private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public PageResponse<AssignmentResponse> list(Long classroomId, int page, int size) {
@@ -70,6 +72,14 @@ public class AssignmentService {
                 .attachments(new HashSet<>(fileStorageService.resolveForClassroom(classroomId, request.fileIds())))
                 .build();
         assignmentRepository.save(assignment);
+        notificationService.notifyClassMembers(
+                classroomId,
+                creator.getId(),
+                NotificationType.ASSIGNMENT,
+                "New assignment: " + assignment.getTitle(),
+                assignment.getClassroom().getName() + " - " + assignment.getMaxPoints() + " points",
+                NotificationService.assignmentLink(classroomId, assignment.getId())
+        );
         return toResponse(assignment, null);
     }
 
@@ -245,6 +255,14 @@ public class AssignmentService {
             submission.setReturnedAt(null);
         }
         submissionRepository.save(submission);
+        notificationService.notifyUser(
+                student,
+                assignment.getClassroom(),
+                NotificationType.GRADED,
+                "Graded: " + assignment.getTitle(),
+                "You scored " + request.grade().stripTrailingZeros().toPlainString() + " / " + assignment.getMaxPoints(),
+                NotificationService.assignmentLink(classroomId, assignmentId)
+        );
         return toSubmissionResponse(assignment, student, submission, submission.getStatus());
     }
 
@@ -301,20 +319,7 @@ public class AssignmentService {
     }
 
     private SubmissionStatus computeStatus(Assignment assignment, Submission submission) {
-        Instant now = Instant.now();
-        boolean pastDue = assignment.getDueAt() != null && now.isAfter(assignment.getDueAt());
-
-        if (submission == null) {
-            return pastDue ? SubmissionStatus.MISSING : SubmissionStatus.ASSIGNED;
-        }
-
-        SubmissionStatus stored = submission.getStatus();
-        if (stored == SubmissionStatus.GRADED || stored == SubmissionStatus.RETURNED
-                || stored == SubmissionStatus.SUBMITTED || stored == SubmissionStatus.LATE) {
-            return stored;
-        }
-        // ASSIGNED in DB
-        return pastDue ? SubmissionStatus.MISSING : SubmissionStatus.ASSIGNED;
+        return SubmissionStatusResolver.resolve(assignment, submission);
     }
 
     private Assignment requireAssignment(Long classroomId, Long assignmentId) {

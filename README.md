@@ -7,51 +7,102 @@ Monorepo:
 - `backend` — Spring Boot 3, Java 21, MySQL 8, JWT auth, Flyway
 - `frontend` — React + Vite + TypeScript + Tailwind CSS
 
+## Features
+
+### Phase 1 — Auth & classes
+
+- Register / login / refresh / logout (JWT access 15 min + refresh 7 days)
+- Teachers create, edit, archive classes and regenerate class codes
+- Students join via class code
+- Dashboard, class shell (Stream / Classwork / Materials / People / Grades), profile
+
+### Phase 2 — Classwork
+
+- Stream: announcements, pin/unpin, comments, attachments
+- Topics; study materials with upload/download (max 25 MB)
+- Assignments, submissions, grading and return
+- Student dashboard To-do (upcoming and missing)
+
+### Phase 3 — Notifications, grades, admin & polish
+
+- In-app notifications (announcement, assignment, material, graded, due-tomorrow job)
+- Gradebook matrix, student grade summary, CSV/Excel export, class analytics charts
+- Calendar month view of due dates across classes
+- Global search (Ctrl+K)
+- Admin dashboard (users, roles, activate/deactivate, all classes, storage stats)
+- Security: login rate limit, lockout after 5 failures, change password, forgot/reset password
+- Dark mode (same accent `#1A73E8`)
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Browser["React frontend\n(Vite / Nginx)"]
+  API["Spring Boot API\n/api/*"]
+  DB[(MySQL 8)]
+  Files["Upload directory"]
+
+  Browser -->|JWT + REST| API
+  API --> DB
+  API --> Files
+```
+
+## API overview
+
+| Area | Base path | Notes |
+|------|-----------|--------|
+| Auth | `/api/auth` | register, login, refresh, logout, me, change/forgot/reset password |
+| Classrooms | `/api/classrooms` | CRUD, join, people |
+| Stream | `/api/classrooms/{id}/announcements` | posts, pin, comments |
+| Topics / materials | `/api/classrooms/{id}/topics`, `.../materials` | |
+| Assignments | `/api/classrooms/{id}/assignments` | submit, unsubmit, grade |
+| Files | `/api/classrooms/{id}/files`, `/api/files/{id}/download` | membership-checked |
+| Notifications | `/api/notifications` | list, unread count, mark read |
+| Grades | `/api/classrooms/{id}/grades` | gradebook, me, analytics, export |
+| Calendar | `/api/calendar` | `?year=&month=` |
+| Search | `/api/search?q=` | classes, assignments, materials |
+| Admin | `/api/admin` | stats, users, classrooms |
+| To-do | `/api/me/todo` | student upcoming / missing |
+
+Swagger UI: http://localhost:8080/swagger-ui.html
+
 ## Prerequisites
 
 - Java 21+ (`JAVA_HOME` must point to JDK 21)
-- Maven 3.9+ (or use `backend/mvnw`)
+- Maven 3.9+ (or `backend/mvnw`)
 - Node.js 20+
-- MySQL 8
+- MySQL 8  
+  **or** Docker Desktop for Compose
 
-## Database setup
+## Setup (local)
+
+### 1. Database
 
 ```sql
 CREATE DATABASE IF NOT EXISTS campusconnect CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Default connection (override with env vars):
+| Variable | Default |
+|----------|---------|
+| `DB_HOST` | `localhost` |
+| `DB_PORT` | `3306` |
+| `DB_NAME` | `campusconnect` |
+| `DB_USER` | `root` |
+| `DB_PASSWORD` | `root` |
+| `JWT_SECRET` | (dev secret in `application.yml`) |
+| `UPLOAD_DIR` | `./uploads` |
+| `FRONTEND_URL` | `http://localhost:5173` |
 
-| Variable      | Default       |
-|---------------|---------------|
-| `DB_HOST`     | `localhost`   |
-| `DB_PORT`     | `3306`        |
-| `DB_NAME`     | `campusconnect` |
-| `DB_USER`     | `root`        |
-| `DB_PASSWORD` | `root`        |
-| `JWT_SECRET`  | (dev secret in `application.yml`) |
-| `UPLOAD_DIR`  | `./uploads`   |
-
-## Run backend
-
-```bash
-cd backend
-./mvnw spring-boot:run
-```
-
-On Windows:
+### 2. Backend
 
 ```bash
 cd backend
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
-- API: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui.html
+Flyway applies `V1`, `V2`, and `V3` on startup. The `dev` profile copies sample material files into `UPLOAD_DIR`.
 
-Flyway runs `V1__init.sql` and `V2__classwork.sql` on startup (`ddl-auto=validate`). Uploaded files are stored under `UPLOAD_DIR` (default `./uploads`).
-
-## Run frontend
+### 3. Frontend
 
 ```bash
 cd frontend
@@ -59,47 +110,77 @@ npm install
 npm run dev
 ```
 
-App: http://localhost:5173 (CORS is configured for this origin).
+App: http://localhost:5173
 
-## Seed data
-
-After the backend has migrated the schema once:
+### 4. Seed data (optional demo content)
 
 ```bash
 mysql -u root -p campusconnect < backend/src/main/resources/db/seed/seed_phase1.sql
 mysql -u root -p campusconnect < backend/src/main/resources/db/seed/seed_phase2.sql
+mysql -u root -p campusconnect < backend/src/main/resources/db/seed/seed_phase3.sql
 ```
 
-Phase 1 seed:
+Then restart the backend with the `dev` profile so seed PDFs/images are linked on disk.
 
-- 2 teachers, 8 students
-- 3 classes (Advanced Java, DBMS, Web Technologies Lab)
+## Docker Compose
 
-Phase 2 seed:
+```bash
+docker compose up --build
+```
 
-- Topics, stream announcements + comments
-- Materials metadata, assignments, mixed submissions (submitted / late / missing / graded / returned)
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:8080 |
+| MySQL | localhost:3306 |
 
-All seed accounts use password: `Password@123`
+Nginx proxies `/api` from the frontend container to the backend. After first boot, load seed SQL into the MySQL container if you want demo data:
 
-Example logins:
+```bash
+docker exec -i campusconnect-mysql mysql -uroot -proot campusconnect < backend/src/main/resources/db/seed/seed_phase1.sql
+docker exec -i campusconnect-mysql mysql -uroot -proot campusconnect < backend/src/main/resources/db/seed/seed_phase2.sql
+docker exec -i campusconnect-mysql mysql -uroot -proot campusconnect < backend/src/main/resources/db/seed/seed_phase3.sql
+docker restart campusconnect-backend
+```
 
-- Teacher: `ananya.krishnan@college.edu`
-- Student: `aarav.mehta@student.college.edu`
+## Demo login credentials
 
-## Features
+All seeded passwords: **`Password@123`**
 
-### Phase 1
+| Role | Email |
+|------|--------|
+| Admin | `admin@campusconnect.edu` |
+| Teacher | `ananya.krishnan@college.edu` |
+| Student | `aarav.mehta@student.college.edu` |
 
-- Register / login / refresh / logout (JWT access 15 min + refresh 7 days)
-- Teachers create, edit, archive classes and regenerate class codes
-- Students join via class code
-- Dashboard, class shell with tabs, People tab, profile
+## Screenshots
 
-### Phase 2
+Add screenshots under `docs/screenshots/` and link them here for your project report:
 
-- Stream: announcements, pin/unpin, comments, attachments
-- Topics to group classwork and materials
-- Study materials with upload/download (max 25 MB; PDF, Office, images, ZIP)
-- Assignments, student submissions, teacher grading and return
-- Student dashboard To-do (upcoming and missing work)
+- `docs/screenshots/dashboard.png` — class grid / to-do
+- `docs/screenshots/stream.png` — class stream
+- `docs/screenshots/gradebook.png` — teacher gradebook
+- `docs/screenshots/calendar.png` — due-date calendar
+- `docs/screenshots/admin.png` — admin stats
+
+*(Placeholders — capture from a running instance before submission.)*
+
+## Tests
+
+```bash
+cd backend
+.\mvnw.cmd test
+```
+
+Uses JUnit 5 + Mockito + H2 for auth, classroom, notification, grade, and security flows.
+
+## Project structure
+
+```
+Campus-Connect/
+  backend/          Spring Boot API
+  frontend/         React SPA
+  docker-compose.yml
+  scripts/          seed file generator
+  .cursor/rules/    Cursor project rules
+```

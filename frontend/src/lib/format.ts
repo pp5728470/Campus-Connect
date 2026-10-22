@@ -50,3 +50,15 @@ export function dueLabel(iso: string | null): string {
   if (days < 7) return `Due in ${days} days`
   return `Due ${format(due, 'd MMM')}`
 }
+
+/** Formats a 0-100 percentage for display, e.g. "86%"; "-" when there is nothing to show. */
+export function formatPercent(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '-'
+  return `${Math.round(value * 10) / 10}%`
+}
+
+/** Formats marks without trailing zeros, e.g. 18, 18.5. */
+export function formatMarks(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '-'
+  return String(Math.round(value * 100) / 100)
+}

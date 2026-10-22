@@ -26,12 +26,17 @@ spring:
     baseline-on-migrate: true
 
 app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  security:
+    lockout-max-attempts: ${LOCKOUT_MAX_ATTEMPTS:5}
+    lockout-duration-minutes: ${LOCKOUT_DURATION_MINUTES:15}
+    login-rate-limit-per-minute: ${LOGIN_RATE_LIMIT_PER_MINUTE:5}
   jwt:
     secret: ${JWT_SECRET:campusconnect-dev-secret-key-change-in-production-must-be-256-bits-long}
     access-token-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
     refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
   upload:
     dir: ${UPLOAD_DIR:./uploads}
     max-file-size-bytes: ${UPLOAD_MAX_BYTES:26214400}

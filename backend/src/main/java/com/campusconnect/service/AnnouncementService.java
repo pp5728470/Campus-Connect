@@ -27,6 +27,7 @@ public class AnnouncementService {
     private final UserRepository userRepository;
     private final ClassroomAccessService classroomAccessService;
     private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public PageResponse<AnnouncementResponse> list(Long classroomId, int page, int size) {
@@ -54,6 +55,14 @@ public class AnnouncementService {
                 .attachments(new HashSet<>(fileStorageService.resolveForClassroom(classroomId, request.fileIds())))
                 .build();
         announcementRepository.save(announcement);
+        notificationService.notifyClassMembers(
+                classroomId,
+                author.getId(),
+                NotificationType.ANNOUNCEMENT,
+                "New announcement in " + classroom.getName(),
+                preview(announcement.getBody()),
+                NotificationService.classLink(classroomId, "stream")
+        );
         return toResponse(announcement);
     }
 
@@ -108,6 +117,10 @@ public class AnnouncementService {
     private Announcement requireAnnouncement(Long classroomId, Long announcementId) {
         return announcementRepository.findByIdAndClassroomId(announcementId, classroomId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Announcement not found"));
+    }
+
+    private String preview(String text) {
+        return text.length() <= 140 ? text : text.substring(0, 139) + "\u2026";
     }
 
     private User currentUserEntity() {

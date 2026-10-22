@@ -1,10 +1,12 @@
 package com.campusconnect.repository;
 
 import com.campusconnect.entity.Material;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +23,16 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
     List<Material> findAllForClassroom(@Param("classroomId") Long classroomId);
 
     Optional<Material> findByIdAndClassroomId(Long id, Long classroomId);
+
+    @Query("""
+            SELECT m FROM Material m
+            JOIN FETCH m.classroom c
+            WHERE c.id IN :classroomIds AND LOWER(m.title) LIKE :pattern ESCAPE '!'
+            ORDER BY m.createdAt DESC
+            """)
+    List<Material> searchByTitle(
+            @Param("classroomIds") Collection<Long> classroomIds,
+            @Param("pattern") String pattern,
+            Pageable pageable
+    );
 }

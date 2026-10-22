@@ -2,7 +2,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { tokenStore } from '@/lib/tokens'
 import type { AuthResponse } from '@/types'
 
-export const API_BASE_URL = 'http://localhost:8080/api'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -38,7 +38,9 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config as RetriableConfig | undefined
-    const isAuthCall = original?.url?.startsWith('/auth/login') || original?.url?.startsWith('/auth/register')
+    const isAuthCall = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'].some((path) =>
+      original?.url?.startsWith(path),
+    )
 
     if (error.response?.status !== 401 || !original || original._retry || isAuthCall) {
       return Promise.reject(error)

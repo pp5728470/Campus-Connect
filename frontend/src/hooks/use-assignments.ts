@@ -68,6 +68,7 @@ function useRefreshAssignment(classId: number, id: number) {
     void queryClient.invalidateQueries({ queryKey: assignmentKeys.detail(classId, id) })
     void queryClient.invalidateQueries({ queryKey: assignmentKeys.list(classId) })
     void queryClient.invalidateQueries({ queryKey: assignmentKeys.todo })
+    void queryClient.invalidateQueries({ queryKey: ['classrooms', classId, 'grades'] })
   }
 }
 

@@ -14,6 +14,7 @@ public class UserMapper {
                 user.getEmail(),
                 user.getRole(),
                 user.getAvatarUrl(),
+                user.isActive(),
                 user.getCreatedAt()
         );
     }

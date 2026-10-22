@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuth } from '@/lib/auth-context'
@@ -53,6 +53,11 @@ export function LoginForm() {
         error={errors.password?.message}
         {...register('password')}
       />
+      <div className="-mt-2 text-right">
+        <Link to="/forgot-password" className="text-body font-medium text-accent hover:underline">
+          Forgot password?
+        </Link>
+      </div>
       <Button type="submit" loading={isSubmitting}>
         Sign in
       </Button>

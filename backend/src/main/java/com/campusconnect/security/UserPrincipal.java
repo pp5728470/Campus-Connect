@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
@@ -18,6 +19,8 @@ public class UserPrincipal implements UserDetails {
     private final String password;
     private final Role role;
     private final String fullName;
+    private final boolean active;
+    private final Instant lockedUntil;
 
     public UserPrincipal(User user) {
         this.id = user.getId();
@@ -25,6 +28,8 @@ public class UserPrincipal implements UserDetails {
         this.password = user.getPasswordHash();
         this.role = user.getRole();
         this.fullName = user.getFullName();
+        this.active = user.isActive();
+        this.lockedUntil = user.getLockedUntil();
     }
 
     @Override
@@ -49,7 +54,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return lockedUntil == null || lockedUntil.isBefore(Instant.now());
     }
 
     @Override
@@ -59,6 +64,6 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return active;
     }
 }

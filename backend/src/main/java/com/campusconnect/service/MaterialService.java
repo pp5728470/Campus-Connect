@@ -4,6 +4,7 @@ import com.campusconnect.dto.common.PageResponse;
 import com.campusconnect.dto.material.MaterialRequest;
 import com.campusconnect.dto.material.MaterialResponse;
 import com.campusconnect.entity.Material;
+import com.campusconnect.entity.NotificationType;
 import com.campusconnect.entity.User;
 import com.campusconnect.exception.ApiException;
 import com.campusconnect.repository.MaterialRepository;
@@ -26,6 +27,7 @@ public class MaterialService {
     private final ClassroomAccessService classroomAccessService;
     private final TopicService topicService;
     private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public PageResponse<MaterialResponse> list(Long classroomId, int page, int size) {
@@ -58,6 +60,14 @@ public class MaterialService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "At least one file is required");
         }
         materialRepository.save(material);
+        notificationService.notifyClassMembers(
+                classroomId,
+                creator.getId(),
+                NotificationType.MATERIAL,
+                "New material: " + material.getTitle(),
+                material.getClassroom().getName(),
+                NotificationService.classLink(classroomId, "materials")
+        );
         return toResponse(material);
     }
 

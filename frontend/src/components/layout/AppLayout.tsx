@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { CommandPalette } from '@/features/search/CommandPalette'
 import { cn } from '@/lib/cn'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
@@ -9,6 +10,20 @@ const DESKTOP_QUERY = '(min-width: 1024px)'
 export function AppLayout() {
   // Open by default on desktop, closed on smaller screens.
   const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia(DESKTOP_QUERY).matches)
+
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  // Ctrl+K (Cmd+K on macOS) toggles the search palette from anywhere.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setSearchOpen((open) => !open)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   const closeOnMobile = () => {
     if (!window.matchMedia(DESKTOP_QUERY).matches) setSidebarOpen(false)
@@ -22,7 +37,12 @@ export function AppLayout() {
       >
         Skip to content
       </a>
-      <TopBar sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((open) => !open)} />
+      <TopBar
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen((open) => !open)}
+        onOpenSearch={() => setSearchOpen(true)}
+      />
+      <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
       <div className="relative flex min-h-0 flex-1">
         <Sidebar open={sidebarOpen} onNavigate={closeOnMobile} />
         {/* Dimmed backdrop behind the mobile drawer */}

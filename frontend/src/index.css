@@ -38,6 +38,24 @@
   --text-meta--line-height: 16px;
 }
 
+
+/* Dark palette: same accent, neutral surfaces. Applied by ThemeProvider via html.dark. */
+html.dark {
+  color-scheme: dark;
+
+  --color-accent-hover: #4a8df0;
+  --color-accent-soft: #1b2a41;
+  --color-bg: #121417;
+  --color-surface: #1c1f24;
+  --color-border: #2e3338;
+  --color-ink: #e8eaed;
+  --color-muted: #9aa0a6;
+  --color-hover: #262a30;
+
+  --color-success: #81c995;
+  --color-warning: #fdd663;
+  --color-danger: #f28b82;
+}
 @layer base {
   html,
   body,

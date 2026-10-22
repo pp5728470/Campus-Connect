@@ -10,6 +10,7 @@ public record UserResponse(
         String email,
         Role role,
         String avatarUrl,
+        boolean active,
         Instant createdAt
 ) {
 }

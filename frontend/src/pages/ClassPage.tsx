@@ -1,9 +1,10 @@
-import { BookOpen, GraduationCap } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { ClassBanner, ClassBannerSkeleton } from '@/features/classrooms/ClassBanner'
+import { GradesTab } from '@/features/grades/GradesTab'
 import { ClassworkTab } from '@/features/classwork/ClassworkTab'
 import { MaterialsTab } from '@/features/materials/MaterialsTab'
 import { StreamTab } from '@/features/stream/StreamTab'
@@ -75,13 +76,7 @@ export default function ClassPage() {
         {activeTab === 'classwork' && <ClassworkTab classroom={classroom} />}
         {activeTab === 'materials' && <MaterialsTab classroom={classroom} />}
         {activeTab === 'people' && <PeopleTab classroom={classroom} currentUserId={user.id} />}
-        {activeTab === 'grades' && (
-          <EmptyState
-            icon={GraduationCap}
-            title="No grades to show yet"
-            description="Marks and feedback appear here once graded work is returned."
-          />
-        )}
+        {activeTab === 'grades' && <GradesTab classroom={classroom} />}
       </div>
     </div>
   )

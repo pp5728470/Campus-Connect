@@ -1,0 +1,6 @@
+# Activate with: --spring.profiles.active=dev
+# Enables SeedFileBootstrap (copies classpath seed-files into UPLOAD_DIR).
+
+logging:
+  level:
+    com.campusconnect.config.SeedFileBootstrap: INFO

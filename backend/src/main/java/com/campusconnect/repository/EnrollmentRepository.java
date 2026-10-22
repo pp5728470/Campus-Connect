@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,4 +38,12 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     Page<Enrollment> findByClassroomIdAndRoleInClass(Long classroomId, ClassRole roleInClass, Pageable pageable);
 
     void deleteByClassroomIdAndUserId(Long classroomId, Long userId);
+
+    /** Returns rows of {classroomId, studentCount} for the given classes. */
+    @Query("""
+            SELECT e.classroom.id, COUNT(e) FROM Enrollment e
+            WHERE e.classroom.id IN :classroomIds AND e.roleInClass = com.campusconnect.entity.ClassRole.STUDENT
+            GROUP BY e.classroom.id
+            """)
+    List<Object[]> countStudentsByClassroomIds(@Param("classroomIds") Collection<Long> classroomIds);
 }

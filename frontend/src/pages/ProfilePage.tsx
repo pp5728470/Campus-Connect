@@ -2,6 +2,7 @@ import { format, parseISO } from 'date-fns'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { ChangePasswordForm } from '@/features/auth/ChangePasswordForm'
 import { useAuth } from '@/lib/auth-context'
 
 export default function ProfilePage() {
@@ -37,6 +38,7 @@ export default function ProfilePage() {
           ))}
         </dl>
       </Card>
+      <ChangePasswordForm />
     </div>
   )
 }

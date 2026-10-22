@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { downloadFile, filesApi } from '@/api/files'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
+import { getErrorMessage } from '@/lib/errors'
 import { fileKind } from '@/lib/files'
 import type { FileResponse } from '@/types'
 
@@ -11,10 +13,11 @@ interface FilePreviewModalProps {
   onClose: () => void
 }
 
-type PreviewState = { status: 'loading' } | { status: 'error' } | { status: 'ready'; url: string }
+type PreviewState = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; url: string }
 
 /** Fetches the file with the auth header and shows it from a temporary object URL. */
 function PreviewBody({ file }: { file: FileResponse }) {
+  const toast = useToast()
   const [state, setState] = useState<PreviewState>({ status: 'loading' })
   const kind = fileKind(file.originalName, file.contentType)
 
@@ -25,19 +28,23 @@ function PreviewBody({ file }: { file: FileResponse }) {
       .fetchBlob(file.id)
       .then((blob) => {
         if (cancelled) return
-        // Make sure the browser renders the blob as the type we expect.
         const type = kind === 'pdf' ? 'application/pdf' : (file.contentType ?? blob.type)
         objectUrl = URL.createObjectURL(new Blob([blob], { type }))
         setState({ status: 'ready', url: objectUrl })
       })
-      .catch(() => {
-        if (!cancelled) setState({ status: 'error' })
+      .catch((error) => {
+        if (cancelled) return
+        const message = getErrorMessage(error, 'This file is missing on the server.')
+        setState({ status: 'error', message })
+        toast.error(message)
       })
     return () => {
       cancelled = true
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [file, kind])
+    // toast is stable enough for this effect; omit to avoid refetch loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file.id, file.contentType, file.originalName, kind])
 
   if (state.status === 'loading') {
     return (
@@ -51,10 +58,17 @@ function PreviewBody({ file }: { file: FileResponse }) {
   if (state.status === 'error') {
     return (
       <div role="alert" className="flex h-64 flex-col items-center justify-center gap-3 text-center">
-        <p className="text-body text-danger">The preview could not be loaded.</p>
-        <Button variant="secondary" onClick={() => void downloadFile(file)}>
+        <p className="max-w-md text-body text-danger">{state.message}</p>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            void downloadFile(file).catch((error) => {
+              toast.error(getErrorMessage(error, 'Could not download the file.'))
+            })
+          }}
+        >
           <Download className="size-4" aria-hidden={true} />
-          Download instead
+          Try download
         </Button>
       </div>
     )
@@ -72,13 +86,22 @@ function PreviewBody({ file }: { file: FileResponse }) {
 }
 
 export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
+  const toast = useToast()
+
   return (
     <Modal open={file !== null} onClose={onClose} title={file?.originalName ?? 'Preview'} size="lg">
       <div className="flex flex-col gap-4">
         {file && <PreviewBody key={file.id} file={file} />}
         {file && (
           <div className="flex justify-end">
-            <Button variant="secondary" onClick={() => void downloadFile(file)}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                void downloadFile(file).catch((error) => {
+                  toast.error(getErrorMessage(error, 'Could not download the file.'))
+                })
+              }}
+            >
               <Download className="size-4" aria-hidden={true} />
               Download
             </Button>

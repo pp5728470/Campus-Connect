@@ -52,13 +52,27 @@ INSERT INTO announcement_comments (announcement_id, author_id, body, created_at)
 (4, 8, 'Should the ER diagram include weak entities?', DATE_SUB(NOW(), INTERVAL 2 DAY)),
 (4, 1, 'Include them if your scenario needs them; justify in a short note.', DATE_SUB(NOW(), INTERVAL 2 DAY));
 
--- Materials (metadata only; upload real files via the UI)
+-- Materials for Advanced Java (+ a couple of other classes without binary seed files)
 INSERT INTO materials (id, classroom_id, topic_id, title, description, created_by, created_at, updated_at) VALUES
 (1, 1, 1, 'JDBC Quick Reference', 'Connection, Statement vs PreparedStatement, and ResultSet navigation.', 1, DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY)),
 (2, 1, 1, 'Sample bank schema SQL', 'CREATE TABLE scripts used in the JDBC lab.', 1, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
-(3, 1, 3, 'Spring Boot project structure notes', 'Layers, packages, and application.yml conventions we will follow.', 1, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(3, 1, 2, 'Servlet Lifecycle Handout', 'init, service, destroy, and the request flow used in the lab.', 1, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
 (4, 2, 4, 'ER modelling checklist', 'Entities, relationships, cardinality, and normalisation reminders.', 1, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY)),
 (5, 3, 6, 'CSS Grid cheatsheet', 'Common layout patterns for the lab landing page.', 2, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY));
+
+-- Seed file records (physical bytes are copied by SeedFileBootstrap on the "dev" profile)
+-- stored_name values must match SeedFileBootstrap / classpath:seed-files/*
+INSERT INTO stored_files (id, classroom_id, uploaded_by, stored_name, original_name, content_type, size_bytes, created_at) VALUES
+(1, 1, 1, 'seed-jdbc-quick-reference.pdf', 'jdbc-quick-reference.pdf', 'application/pdf', 927, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+(2, 1, 1, 'seed-servlet-lifecycle.pdf', 'servlet-lifecycle.pdf', 'application/pdf', 911, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(3, 1, 1, 'seed-bank-schema-notes.pdf', 'bank-schema-notes.pdf', 'application/pdf', 874, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(4, 1, 1, 'seed-jdbc-architecture.png', 'jdbc-architecture.png', 'image/png', 347, DATE_SUB(NOW(), INTERVAL 6 DAY));
+
+INSERT INTO material_files (material_id, file_id) VALUES
+(1, 1),
+(1, 4),
+(2, 3),
+(3, 2);
 
 -- Assignments
 INSERT INTO assignments (id, classroom_id, topic_id, title, instructions, max_points, due_at, allow_late, created_by, created_at, updated_at) VALUES
