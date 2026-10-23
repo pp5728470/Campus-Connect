@@ -27,6 +27,19 @@ public class ClassroomAccessService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Class not found"));
     }
 
+    /**
+     * Ensures the class exists and is not archived. Call on write operations only;
+     * members may still read archived classes.
+     */
+    @Transactional(readOnly = true)
+    public Classroom requireActiveClassroom(Long classroomId) {
+        Classroom classroom = requireClassroom(classroomId);
+        if (classroom.isArchived()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "This class has been archived");
+        }
+        return classroom;
+    }
+
     @Transactional(readOnly = true)
     public Enrollment requireMembership(Long classroomId) {
         UserPrincipal principal = SecurityUtils.currentUser();
@@ -48,8 +61,11 @@ public class ClassroomAccessService {
     @Transactional(readOnly = true)
     public boolean isTeacherInClass(Long classroomId) {
         UserPrincipal principal = SecurityUtils.currentUser();
+        if (principal.getRole() == Role.ADMIN) {
+            return true;
+        }
         return enrollmentRepository.findByClassroomIdAndUserId(classroomId, principal.getId())
-                .map(e -> e.getRoleInClass() == ClassRole.TEACHER || principal.getRole() == Role.ADMIN)
+                .map(e -> e.getRoleInClass() == ClassRole.TEACHER)
                 .orElse(false);
     }
 }

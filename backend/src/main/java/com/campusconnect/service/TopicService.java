@@ -29,6 +29,7 @@ public class TopicService {
 
     @Transactional
     public TopicResponse create(Long classroomId, TopicRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Topic topic = Topic.builder()
                 .classroom(classroomAccessService.requireClassroom(classroomId))
@@ -41,6 +42,7 @@ public class TopicService {
 
     @Transactional
     public TopicResponse update(Long classroomId, Long topicId, TopicRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Topic topic = topicRepository.findByIdAndClassroomId(topicId, classroomId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Topic not found"));
@@ -53,6 +55,7 @@ public class TopicService {
 
     @Transactional
     public void delete(Long classroomId, Long topicId) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Topic topic = topicRepository.findByIdAndClassroomId(topicId, classroomId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Topic not found"));

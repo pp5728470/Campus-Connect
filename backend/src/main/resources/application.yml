@@ -1,5 +1,7 @@
 server:
   port: ${SERVER_PORT:8080}
+  # Honor X-Forwarded-* from nginx/Docker so rate limiting sees the real client IP
+  forward-headers-strategy: native
 
 spring:
   application:
@@ -36,7 +38,7 @@ app:
     access-token-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
     refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000}
   upload:
     dir: ${UPLOAD_DIR:./uploads}
     max-file-size-bytes: ${UPLOAD_MAX_BYTES:26214400}

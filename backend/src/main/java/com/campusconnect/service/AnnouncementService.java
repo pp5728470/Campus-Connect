@@ -43,6 +43,7 @@ public class AnnouncementService {
 
     @Transactional
     public AnnouncementResponse create(Long classroomId, CreateAnnouncementRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         User author = currentUserEntity();
         Classroom classroom = classroomAccessService.requireClassroom(classroomId);
@@ -52,7 +53,8 @@ public class AnnouncementService {
                 .author(author)
                 .body(request.body().trim())
                 .pinned(Boolean.TRUE.equals(request.pinned()))
-                .attachments(new HashSet<>(fileStorageService.resolveForClassroom(classroomId, request.fileIds())))
+                .attachments(new HashSet<>(fileStorageService.resolveOwnedForClassroom(
+                        classroomId, request.fileIds(), author.getId())))
                 .build();
         announcementRepository.save(announcement);
         notificationService.notifyClassMembers(
@@ -68,6 +70,7 @@ public class AnnouncementService {
 
     @Transactional
     public AnnouncementResponse setPinned(Long classroomId, Long announcementId, boolean pinned) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Announcement announcement = requireAnnouncement(classroomId, announcementId);
         announcement.setPinned(pinned);
@@ -76,6 +79,7 @@ public class AnnouncementService {
 
     @Transactional
     public void delete(Long classroomId, Long announcementId) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Announcement announcement = requireAnnouncement(classroomId, announcementId);
         announcementRepository.delete(announcement);
@@ -83,6 +87,7 @@ public class AnnouncementService {
 
     @Transactional
     public CommentResponse addComment(Long classroomId, Long announcementId, CommentRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireMembership(classroomId);
         Announcement announcement = requireAnnouncement(classroomId, announcementId);
         User author = currentUserEntity();
@@ -99,6 +104,7 @@ public class AnnouncementService {
 
     @Transactional
     public void deleteComment(Long classroomId, Long announcementId, Long commentId) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         Enrollment enrollment = classroomAccessService.requireMembership(classroomId);
         Announcement announcement = requireAnnouncement(classroomId, announcementId);
         AnnouncementComment comment = commentRepository.findByIdAndAnnouncementId(commentId, announcement.getId())

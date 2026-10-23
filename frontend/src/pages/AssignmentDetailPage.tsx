@@ -132,12 +132,12 @@ export default function AssignmentDetailPage() {
 
         {!isTeacher && (
           <div className="lg:col-span-1">
-            <YourWorkPanel assignment={assignment} />
+            <YourWorkPanel assignment={assignment} archived={classroom.archived} />
           </div>
         )}
       </div>
 
-      {isTeacher && <SubmissionsPanel assignment={assignment} />}
+      {isTeacher && <SubmissionsPanel assignment={assignment} archived={classroom.archived} />}
     </div>
   )
 }

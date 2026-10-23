@@ -100,14 +100,20 @@ export function GradebookTable({ classroom }: { classroom: Classroom }) {
                   return (
                     <td key={assignment.id} className="px-2 py-1">
                       {cell && (
-                        <button
-                          type="button"
-                          onClick={() => setTarget({ assignmentId: assignment.id, studentId: row.studentId })}
-                          aria-label={`Grade ${row.studentName}, ${assignment.title}`}
-                          className="w-full rounded-lg px-2 py-2 text-left hover:bg-hover"
-                        >
-                          <CellContent cell={cell} maxPoints={assignment.maxPoints} />
-                        </button>
+                        classroom.archived ? (
+                          <div className="w-full rounded-lg px-2 py-2 text-left">
+                            <CellContent cell={cell} maxPoints={assignment.maxPoints} />
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setTarget({ assignmentId: assignment.id, studentId: row.studentId })}
+                            aria-label={`Grade ${row.studentName}, ${assignment.title}`}
+                            className="w-full rounded-lg px-2 py-2 text-left hover:bg-hover"
+                          >
+                            <CellContent cell={cell} maxPoints={assignment.maxPoints} />
+                          </button>
+                        )
                       )}
                     </td>
                   )

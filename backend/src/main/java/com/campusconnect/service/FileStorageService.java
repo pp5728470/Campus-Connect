@@ -3,6 +3,7 @@ package com.campusconnect.service;
 import com.campusconnect.config.UploadProperties;
 import com.campusconnect.dto.file.FileResponse;
 import com.campusconnect.entity.Classroom;
+import com.campusconnect.entity.Role;
 import com.campusconnect.entity.StoredFile;
 import com.campusconnect.entity.User;
 import com.campusconnect.exception.ApiException;
@@ -10,6 +11,7 @@ import com.campusconnect.mapper.FileMapper;
 import com.campusconnect.repository.StoredFileRepository;
 import com.campusconnect.repository.UserRepository;
 import com.campusconnect.security.SecurityUtils;
+import com.campusconnect.security.UserPrincipal;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -36,21 +38,21 @@ public class FileStorageService {
             "png", "jpg", "jpeg", "gif", "webp", "zip"
     );
 
-    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-powerpoint",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "image/png",
-            "image/jpeg",
-            "image/gif",
-            "image/webp",
-            "application/zip",
-            "application/x-zip-compressed",
-            "application/octet-stream"
+    /** Trusted MIME map keyed by lowercase extension (never trust the client Content-Type). */
+    private static final Map<String, String> EXTENSION_MIME_TYPES = Map.ofEntries(
+            Map.entry("pdf", "application/pdf"),
+            Map.entry("doc", "application/msword"),
+            Map.entry("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+            Map.entry("ppt", "application/vnd.ms-powerpoint"),
+            Map.entry("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+            Map.entry("xls", "application/vnd.ms-excel"),
+            Map.entry("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            Map.entry("png", "image/png"),
+            Map.entry("jpg", "image/jpeg"),
+            Map.entry("jpeg", "image/jpeg"),
+            Map.entry("gif", "image/gif"),
+            Map.entry("webp", "image/webp"),
+            Map.entry("zip", "application/zip")
     );
 
     private final UploadProperties uploadProperties;
@@ -69,6 +71,7 @@ public class FileStorageService {
 
     @Transactional
     public StoredFile store(Long classroomId, MultipartFile multipartFile) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireMembership(classroomId);
         validate(multipartFile);
 
@@ -77,7 +80,7 @@ public class FileStorageService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
 
         String originalName = Objects.requireNonNullElse(multipartFile.getOriginalFilename(), "file");
-        String extension = extensionOf(originalName);
+        String extension = extensionOf(originalName).toLowerCase(Locale.ROOT);
         String storedName = UUID.randomUUID().toString().replace("-", "") + (extension.isEmpty() ? "" : "." + extension);
 
         try {
@@ -87,16 +90,12 @@ public class FileStorageService {
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store file");
         }
 
-        String contentType = multipartFile.getContentType() != null
-                ? multipartFile.getContentType()
-                : "application/octet-stream";
-
         StoredFile storedFile = StoredFile.builder()
                 .classroom(classroom)
                 .uploadedBy(uploader)
                 .storedName(storedName)
                 .originalName(originalName)
-                .contentType(contentType)
+                .contentType(mimeForExtension(extension))
                 .sizeBytes(multipartFile.getSize())
                 .build();
 
@@ -126,11 +125,24 @@ public class FileStorageService {
         return files;
     }
 
+    /**
+     * Resolves class files and requires every one to have been uploaded by {@code uploaderId}.
+     */
+    @Transactional(readOnly = true)
+    public List<StoredFile> resolveOwnedForClassroom(Long classroomId, Collection<Long> fileIds, Long uploaderId) {
+        List<StoredFile> files = resolveForClassroom(classroomId, fileIds);
+        boolean allOwned = files.stream().allMatch(f -> f.getUploadedBy().getId().equals(uploaderId));
+        if (!allOwned) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "One or more files are invalid");
+        }
+        return files;
+    }
+
     @Transactional(readOnly = true)
     public FileResponse getMetadata(Long fileId) {
         StoredFile file = storedFileRepository.findById(fileId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "File not found"));
-        classroomAccessService.requireMembership(file.getClassroom().getId());
+        requireCanAccessFile(file);
         return fileMapper.toResponse(file);
     }
 
@@ -138,7 +150,7 @@ public class FileStorageService {
     public Resource loadAsResource(Long fileId) {
         StoredFile file = storedFileRepository.findById(fileId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "File not found"));
-        classroomAccessService.requireMembership(file.getClassroom().getId());
+        requireCanAccessFile(file);
 
         try {
             Path path = rootDir.resolve(file.getStoredName()).normalize();
@@ -157,6 +169,46 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Teachers/ADMIN: any file in the class.
+     * Submission attachments: owning student (or teacher via rule above).
+     * Announcement/material/assignment attachments: any class member.
+     * Unattached files: uploader only.
+     */
+    @Transactional(readOnly = true)
+    public boolean canAccessFile(StoredFile file) {
+        UserPrincipal principal = SecurityUtils.currentUser();
+        Long classroomId = file.getClassroom().getId();
+
+        try {
+            classroomAccessService.requireMembership(classroomId);
+        } catch (ApiException ex) {
+            return false;
+        }
+
+        if (classroomAccessService.isTeacherInClass(classroomId) || principal.getRole() == Role.ADMIN) {
+            return true;
+        }
+
+        if (storedFileRepository.isAttachedToSubmission(file.getId())) {
+            return storedFileRepository.findSubmissionOwnerIdByFileId(file.getId())
+                    .map(ownerId -> ownerId.equals(principal.getId()))
+                    .orElse(false);
+        }
+
+        if (storedFileRepository.isAttachedToClassContent(file.getId())) {
+            return true;
+        }
+
+        return file.getUploadedBy().getId().equals(principal.getId());
+    }
+
+    private void requireCanAccessFile(StoredFile file) {
+        if (!canAccessFile(file)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You do not have access to this file");
+        }
+    }
+
     @Transactional(readOnly = true)
     public StoredFile requireFile(Long fileId) {
         return storedFileRepository.findById(fileId)
@@ -168,8 +220,18 @@ public class FileStorageService {
         return "attachment; filename=\"" + file.getOriginalName().replace("\"", "") + "\"";
     }
 
+    /** Response Content-Type is derived from the file extension, not the client-supplied MIME. */
     public String contentType(Long fileId) {
-        return requireFile(fileId).getContentType();
+        StoredFile file = requireFile(fileId);
+        String ext = extensionOf(file.getOriginalName()).toLowerCase(Locale.ROOT);
+        return mimeForExtension(ext);
+    }
+
+    public static String mimeForExtension(String extension) {
+        if (extension == null || extension.isBlank()) {
+            return "application/octet-stream";
+        }
+        return EXTENSION_MIME_TYPES.getOrDefault(extension.toLowerCase(Locale.ROOT), "application/octet-stream");
     }
 
     private void validate(MultipartFile file) {
@@ -184,13 +246,6 @@ public class FileStorageService {
         if (!ALLOWED_EXTENSIONS.contains(ext)) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Unsupported file type. Allowed: PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, images, ZIP");
-        }
-        String contentType = file.getContentType();
-        if (contentType != null && !contentType.isBlank() && !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            // Some browsers send odd MIME types; extension check is the primary gate.
-            if (!contentType.startsWith("image/") && !contentType.equals("application/octet-stream")) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "Unsupported content type: " + contentType);
-            }
         }
     }
 

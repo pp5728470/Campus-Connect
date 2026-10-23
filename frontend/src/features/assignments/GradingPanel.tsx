@@ -17,6 +17,7 @@ import { gradeSchema, type GradeValues } from './schemas'
 interface GradingPanelProps {
   assignment: Assignment
   submission: Submission
+  archived?: boolean
 }
 
 function GradeForm({ assignment, submission }: GradingPanelProps) {
@@ -79,7 +80,7 @@ function GradeForm({ assignment, submission }: GradingPanelProps) {
   )
 }
 
-export function GradingPanel({ assignment, submission }: GradingPanelProps) {
+export function GradingPanel({ assignment, submission, archived = false }: GradingPanelProps) {
   const hasWork = submission.submittedAt !== null
 
   return (
@@ -108,8 +109,12 @@ export function GradingPanel({ assignment, submission }: GradingPanelProps) {
       )}
 
       <div className="border-t border-border pt-4">
-        {/* Re-key so the form resets when another student or a fresh grade is shown. */}
-        <GradeForm key={`${submission.studentId}-${submission.gradedAt ?? 'none'}`} assignment={assignment} submission={submission} />
+        {archived ? (
+          <p className="text-body text-muted">This class is archived. Grading is closed.</p>
+        ) : (
+          // Re-key so the form resets when another student or a fresh grade is shown.
+          <GradeForm key={`${submission.studentId}-${submission.gradedAt ?? 'none'}`} assignment={assignment} submission={submission} />
+        )}
       </div>
     </Card>
   )

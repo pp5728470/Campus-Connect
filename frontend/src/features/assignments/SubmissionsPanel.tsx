@@ -31,7 +31,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   )
 }
 
-export function SubmissionsPanel({ assignment }: { assignment: Assignment }) {
+export function SubmissionsPanel({ assignment, archived = false }: { assignment: Assignment; archived?: boolean }) {
   const { data, isLoading, isError, refetch } = useSubmissions(assignment.classroomId, assignment.id, true)
   const [filter, setFilter] = useState<Filter>('ALL')
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -142,7 +142,7 @@ export function SubmissionsPanel({ assignment }: { assignment: Assignment }) {
           </Card>
 
           {selected ? (
-            <GradingPanel assignment={assignment} submission={selected} />
+            <GradingPanel assignment={assignment} submission={selected} archived={archived} />
           ) : (
             <EmptyState title="Select a student" description="Choose a student from the list to review and grade their work." />
           )}

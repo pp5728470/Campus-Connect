@@ -46,6 +46,7 @@ public class MaterialService {
 
     @Transactional
     public MaterialResponse create(Long classroomId, MaterialRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         User creator = currentUserEntity();
         Material material = Material.builder()
@@ -54,7 +55,8 @@ public class MaterialService {
                 .title(request.title().trim())
                 .description(trimToNull(request.description()))
                 .createdBy(creator)
-                .files(new HashSet<>(fileStorageService.resolveForClassroom(classroomId, request.fileIds())))
+                .files(new HashSet<>(fileStorageService.resolveOwnedForClassroom(
+                        classroomId, request.fileIds(), creator.getId())))
                 .build();
         if (material.getFiles().isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "At least one file is required");
@@ -73,13 +75,16 @@ public class MaterialService {
 
     @Transactional
     public MaterialResponse update(Long classroomId, Long materialId, MaterialRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Material material = requireMaterial(classroomId, materialId);
         material.setTitle(request.title().trim());
         material.setDescription(trimToNull(request.description()));
         material.setTopic(topicService.requireTopic(classroomId, request.topicId()));
         if (request.fileIds() != null) {
-            material.setFiles(new HashSet<>(fileStorageService.resolveForClassroom(classroomId, request.fileIds())));
+            User teacher = currentUserEntity();
+            material.setFiles(new HashSet<>(fileStorageService.resolveOwnedForClassroom(
+                    classroomId, request.fileIds(), teacher.getId())));
             if (material.getFiles().isEmpty()) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "At least one file is required");
             }
@@ -89,6 +94,7 @@ public class MaterialService {
 
     @Transactional
     public void delete(Long classroomId, Long materialId) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         materialRepository.delete(requireMaterial(classroomId, materialId));
     }

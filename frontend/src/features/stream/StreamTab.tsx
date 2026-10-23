@@ -157,6 +157,7 @@ export function StreamTab({ classroom, currentUserId }: StreamTabProps) {
           classId={classroom.id}
           isTeacher={isTeacher}
           currentUserId={currentUserId}
+          archived={classroom.archived}
         />
       ))}
 

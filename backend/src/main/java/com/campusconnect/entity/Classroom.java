@@ -34,7 +34,7 @@ public class Classroom {
     @Column(length = 1000)
     private String description;
 
-    @Column(name = "class_code", nullable = false, unique = true, length = 7)
+    @Column(name = "class_code", nullable = false, unique = true, length = 7, columnDefinition = "CHAR(7)")
     private String classCode;
 
     @Column(name = "banner_color", nullable = false, length = 7)

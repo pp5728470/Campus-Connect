@@ -58,6 +58,7 @@ public class AssignmentService {
 
     @Transactional
     public AssignmentResponse create(Long classroomId, AssignmentRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         User creator = currentUserEntity();
         Assignment assignment = Assignment.builder()
@@ -69,7 +70,8 @@ public class AssignmentService {
                 .dueAt(request.dueAt())
                 .allowLate(request.allowLate() == null || request.allowLate())
                 .createdBy(creator)
-                .attachments(new HashSet<>(fileStorageService.resolveForClassroom(classroomId, request.fileIds())))
+                .attachments(new HashSet<>(fileStorageService.resolveOwnedForClassroom(
+                        classroomId, request.fileIds(), creator.getId())))
                 .build();
         assignmentRepository.save(assignment);
         notificationService.notifyClassMembers(
@@ -85,6 +87,7 @@ public class AssignmentService {
 
     @Transactional
     public AssignmentResponse update(Long classroomId, Long assignmentId, AssignmentRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Assignment assignment = requireAssignment(classroomId, assignmentId);
         assignment.setTitle(request.title().trim());
@@ -96,13 +99,16 @@ public class AssignmentService {
             assignment.setAllowLate(request.allowLate());
         }
         if (request.fileIds() != null) {
-            assignment.setAttachments(new HashSet<>(fileStorageService.resolveForClassroom(classroomId, request.fileIds())));
+            User teacher = currentUserEntity();
+            assignment.setAttachments(new HashSet<>(fileStorageService.resolveOwnedForClassroom(
+                    classroomId, request.fileIds(), teacher.getId())));
         }
         return toResponse(assignment, null);
     }
 
     @Transactional
     public void delete(Long classroomId, Long assignmentId) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         assignmentRepository.delete(requireAssignment(classroomId, assignmentId));
     }
@@ -155,6 +161,7 @@ public class AssignmentService {
 
     @Transactional
     public SubmissionResponse submit(Long classroomId, Long assignmentId, SubmissionRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         Enrollment enrollment = classroomAccessService.requireMembership(classroomId);
         if (enrollment.getRoleInClass() != ClassRole.STUDENT) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Only students can submit work");
@@ -168,7 +175,8 @@ public class AssignmentService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Late submissions are not allowed for this assignment");
         }
 
-        List<StoredFile> files = fileStorageService.resolveForClassroom(classroomId, request.fileIds());
+        List<StoredFile> files = fileStorageService.resolveOwnedForClassroom(
+                classroomId, request.fileIds(), student.getId());
         String text = trimToNull(request.textAnswer());
         if (files.isEmpty() && text == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Add text or at least one file to submit");
@@ -200,6 +208,7 @@ public class AssignmentService {
 
     @Transactional
     public SubmissionResponse unsubmit(Long classroomId, Long assignmentId) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireMembership(classroomId);
         Assignment assignment = requireAssignment(classroomId, assignmentId);
         User student = currentUserEntity();
@@ -221,13 +230,16 @@ public class AssignmentService {
 
     @Transactional
     public SubmissionResponse grade(Long classroomId, Long assignmentId, Long studentId, GradeRequest request) {
+        classroomAccessService.requireActiveClassroom(classroomId);
         classroomAccessService.requireTeacher(classroomId);
         Assignment assignment = requireAssignment(classroomId, assignmentId);
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Student not found"));
 
-        if (!enrollmentRepository.existsByClassroomIdAndUserId(classroomId, studentId)) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Student is not in this class");
+        Enrollment studentEnrollment = enrollmentRepository.findByClassroomIdAndUserId(classroomId, studentId)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Student is not in this class"));
+        if (studentEnrollment.getRoleInClass() != ClassRole.STUDENT) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Only enrolled students can be graded");
         }
 
         if (request.grade().compareTo(BigDecimal.valueOf(assignment.getMaxPoints())) > 0) {

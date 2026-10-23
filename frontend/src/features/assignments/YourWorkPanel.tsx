@@ -16,6 +16,7 @@ import type { Assignment, FileResponse, Submission } from '@/types'
 
 interface YourWorkPanelProps {
   assignment: Assignment
+  archived?: boolean
 }
 
 function SubmissionForm({ assignment, submission }: { assignment: Assignment; submission: Submission }) {
@@ -103,7 +104,7 @@ function SubmittedWork({ submission }: { submission: Submission }) {
   )
 }
 
-export function YourWorkPanel({ assignment }: YourWorkPanelProps) {
+export function YourWorkPanel({ assignment, archived = false }: YourWorkPanelProps) {
   const toast = useToast()
   const { data: submission, isLoading, isError, refetch } = useMySubmission(
     assignment.classroomId,
@@ -170,17 +171,23 @@ export function YourWorkPanel({ assignment }: YourWorkPanelProps) {
             {submission.submittedAt && (
               <p className="text-meta text-muted">Turned in {timeAgo(submission.submittedAt)}</p>
             )}
-            <div>
-              <Button variant="secondary" loading={unsubmit.isPending} onClick={() => void handleUnsubmit()}>
-                Unsubmit
-              </Button>
-            </div>
+            {!archived && (
+              <div>
+                <Button variant="secondary" loading={unsubmit.isPending} onClick={() => void handleUnsubmit()}>
+                  Unsubmit
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
         {!graded && !turnedIn && (
-          // Re-key so the form picks up files kept after an unsubmit.
-          <SubmissionForm key={`${submission.id}-${submission.status}`} assignment={assignment} submission={submission} />
+          archived ? (
+            <p className="text-body text-muted">This class is archived. Submissions are closed.</p>
+          ) : (
+            // Re-key so the form picks up files kept after an unsubmit.
+            <SubmissionForm key={`${submission.id}-${submission.status}`} assignment={assignment} submission={submission} />
+          )
         )}
       </>
     )

@@ -163,7 +163,8 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refresh(RefreshTokenRequest request) {
-        RefreshToken stored = refreshTokenRepository.findByToken(request.refreshToken())
+        String tokenHash = TokenUtils.sha256(request.refreshToken().trim());
+        RefreshToken stored = refreshTokenRepository.findByToken(tokenHash)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
 
         if (stored.isRevoked() || stored.getExpiresAt().isBefore(Instant.now())) {
@@ -193,11 +194,11 @@ public class AuthService {
     private AuthResponse issueTokens(User user) {
         UserPrincipal principal = new UserPrincipal(user);
         String accessToken = jwtService.generateAccessToken(principal);
-        String refreshTokenValue = UUID.randomUUID().toString() + "-" + UUID.randomUUID();
+        String refreshTokenValue = UUID.randomUUID() + "-" + UUID.randomUUID();
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
-                .token(refreshTokenValue)
+                .token(TokenUtils.sha256(refreshTokenValue))
                 .expiresAt(Instant.now().plusMillis(jwtProperties.getRefreshTokenExpirationMs()))
                 .revoked(false)
                 .build();
@@ -206,3 +207,4 @@ public class AuthService {
         return AuthResponse.of(accessToken, refreshTokenValue, userMapper.toResponse(user));
     }
 }
+

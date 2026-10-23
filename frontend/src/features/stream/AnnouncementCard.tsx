@@ -25,6 +25,7 @@ interface AnnouncementCardProps {
   classId: number
   isTeacher: boolean
   currentUserId: number
+  archived?: boolean
 }
 
 function CommentRow({
@@ -60,7 +61,13 @@ function CommentRow({
   )
 }
 
-export function AnnouncementCard({ announcement, classId, isTeacher, currentUserId }: AnnouncementCardProps) {
+export function AnnouncementCard({
+  announcement,
+  classId,
+  isTeacher,
+  currentUserId,
+  archived = false,
+}: AnnouncementCardProps) {
   const toast = useToast()
   const setPinned = useSetPinned(classId)
   const deleteAnnouncement = useDeleteAnnouncement(classId)
@@ -123,7 +130,7 @@ export function AnnouncementCard({ announcement, classId, isTeacher, currentUser
             {announcement.pinned && <span className="font-medium text-accent"> &middot; Pinned</span>}
           </p>
         </div>
-        {isTeacher && (
+        {isTeacher && !archived && (
           <Dropdown
             label="Announcement actions"
             trigger={<Ellipsis className="size-6 p-1 text-muted" aria-hidden={true} />}
@@ -162,7 +169,7 @@ export function AnnouncementCard({ announcement, classId, isTeacher, currentUser
                 <CommentRow
                   key={comment.id}
                   comment={comment}
-                  canDelete={comment.authorId === currentUserId}
+                  canDelete={!archived && (comment.authorId === currentUserId || isTeacher)}
                   onDelete={() => void removeComment(comment.id)}
                 />
               ))}
@@ -170,26 +177,28 @@ export function AnnouncementCard({ announcement, classId, isTeacher, currentUser
           </>
         )}
 
-        <form onSubmit={(event) => void submitComment(event)} className="flex items-center gap-2">
-          <input
-            type="text"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            aria-label={`Add a class comment to the post by ${announcement.authorName}`}
-            placeholder="Add a class comment"
-            maxLength={2000}
-            className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-body placeholder:text-muted focus-visible:border-accent focus-visible:outline-offset-0"
-          />
-          <Button
-            type="submit"
-            variant="secondary"
-            aria-label="Post comment"
-            loading={addComment.isPending}
-            disabled={!draft.trim()}
-          >
-            <Send className="size-4" aria-hidden={true} />
-          </Button>
-        </form>
+        {!archived && (
+          <form onSubmit={(event) => void submitComment(event)} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              aria-label={`Add a class comment to the post by ${announcement.authorName}`}
+              placeholder="Add a class comment"
+              maxLength={2000}
+              className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-body placeholder:text-muted focus-visible:border-accent focus-visible:outline-offset-0"
+            />
+            <Button
+              type="submit"
+              variant="secondary"
+              aria-label="Post comment"
+              loading={addComment.isPending}
+              disabled={!draft.trim()}
+            >
+              <Send className="size-4" aria-hidden={true} />
+            </Button>
+          </form>
+        )}
       </div>
 
       <ConfirmModal
