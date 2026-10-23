@@ -7,14 +7,12 @@ interface ModalProps {
   onClose: () => void
   title: string
   description?: string
-  /** lg is used for previews that need more room. */
   size?: 'md' | 'lg'
   children: ReactNode
 }
 
 /**
- * Dialog built on the native <dialog> element, which provides focus trapping,
- * Escape handling and an inert background.
+ * Dialog built on the native <dialog> element (focus trap, Escape, inert backdrop).
  */
 export function Modal({ open, onClose, title, description, size = 'md', children }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null)
@@ -35,20 +33,19 @@ export function Modal({ open, onClose, title, description, size = 'md', children
         event.preventDefault()
         onClose()
       }}
-      // A click on the backdrop targets the dialog element itself.
       onMouseDown={(event) => {
         if (event.target === ref.current) onClose()
       }}
       className={cn(
-        'm-auto w-full rounded-lg border border-border bg-surface p-0 text-ink backdrop:bg-black/40',
+        'm-auto w-full rounded-2xl border border-line bg-surface p-0 text-ink shadow-[var(--shadow)] backdrop:bg-black/40',
         size === 'lg' ? 'max-w-4xl' : 'max-w-lg',
       )}
     >
       {open && (
         <div className="flex max-h-[calc(100vh-32px)] flex-col">
-          <div className="flex items-start justify-between gap-4 border-b border-border p-4">
+          <div className="flex items-start justify-between gap-4 border-b border-line p-5">
             <div>
-              <h2 id={titleId} className="text-section font-semibold">
+              <h2 id={titleId} className="font-serif text-[28px] font-normal tracking-[-0.01em]">
                 {title}
               </h2>
               {description && <p className="mt-1 text-body text-muted">{description}</p>}
@@ -57,15 +54,14 @@ export function Modal({ open, onClose, title, description, size = 'md', children
               type="button"
               onClick={onClose}
               aria-label="Close dialog"
-              className="rounded-lg p-1 text-muted hover:bg-hover hover:text-ink"
+              className="rounded-[10px] p-1 text-muted hover:bg-surface-2 hover:text-ink"
             >
-              <X className="size-6" aria-hidden="true" />
+              <X className="size-5" aria-hidden="true" />
             </button>
           </div>
-          <div className="overflow-y-auto p-4">{children}</div>
+          <div className="overflow-y-auto p-5">{children}</div>
         </div>
       )}
     </dialog>
   )
 }
-

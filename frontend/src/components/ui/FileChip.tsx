@@ -1,5 +1,5 @@
-import { File, FileArchive, FileImage, FileSpreadsheet, FileText, Presentation, X } from 'lucide-react'
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import { downloadFile } from '@/api/files'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/cn'
@@ -8,33 +8,32 @@ import { fileKind, type FileKind } from '@/lib/files'
 import { formatBytes } from '@/lib/format'
 import type { FileResponse } from '@/types'
 
-const icons: Record<FileKind, typeof File> = {
-  pdf: FileText,
-  doc: FileText,
-  ppt: Presentation,
-  xls: FileSpreadsheet,
-  image: FileImage,
-  zip: FileArchive,
-  other: File,
+const typeStyles: Record<FileKind, { label: string; className: string }> = {
+  pdf: { label: 'PDF', className: 'bg-danger-soft text-danger' },
+  doc: { label: 'DOC', className: 'bg-accent-soft text-accent' },
+  ppt: { label: 'PPT', className: 'bg-warn-soft text-warn' },
+  xls: { label: 'XLS', className: 'bg-ok-soft text-ok' },
+  image: { label: 'IMG', className: 'bg-ok-soft text-ok' },
+  zip: { label: 'ZIP', className: 'bg-accent-soft text-accent' },
+  other: { label: 'FILE', className: 'bg-surface-2 text-muted' },
 }
 
 interface FileChipProps {
   name: string
   contentType?: string | null
   sizeBytes: number
-  /** Renders the chip as a download button for an uploaded file. */
   file?: Pick<FileResponse, 'id' | 'originalName'>
-  /** Shows a remove button, used for files that are not saved yet. */
   onRemove?: () => void
   disabled?: boolean
   className?: string
 }
 
-/** Compact file reference with a type icon. Clicking an uploaded file downloads it. */
+/** Compact file reference with a folded-corner type badge. */
 export function FileChip({ name, contentType, sizeBytes, file, onRemove, disabled, className }: FileChipProps) {
   const toast = useToast()
   const [downloading, setDownloading] = useState(false)
-  const Icon = icons[fileKind(name, contentType)]
+  const kind = fileKind(name, contentType)
+  const type = typeStyles[kind]
 
   const download = async () => {
     if (!file) return
@@ -50,26 +49,30 @@ export function FileChip({ name, contentType, sizeBytes, file, onRemove, disable
 
   const content = (
     <>
-      <Icon className="size-4 shrink-0 text-accent" aria-hidden={true} />
-      <span className="min-w-0 flex-1 truncate text-body font-medium">{name}</span>
-      <span className="shrink-0 text-meta text-muted">{formatBytes(sizeBytes)}</span>
+      <span className={cn('file-type-badge', type.className)} aria-hidden="true">
+        {type.label}
+      </span>
+      <span className="min-w-0 flex-1">
+        <b className="block truncate text-[13px] font-medium">{name}</b>
+        <span className="block text-meta text-muted">{formatBytes(sizeBytes)}</span>
+      </span>
     </>
   )
 
   return (
-    <div className={cn('flex items-center rounded-lg border border-border bg-surface', className)}>
+    <div className={cn('flex min-w-0 items-center gap-3 rounded-xl border border-line bg-surface py-2 pr-3 pl-2', className)}>
       {file ? (
         <button
           type="button"
           onClick={() => void download()}
           disabled={downloading}
           aria-label={`Download ${name}`}
-          className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-hover disabled:opacity-60"
+          className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:opacity-60"
         >
           {content}
         </button>
       ) : (
-        <div className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2">{content}</div>
+        <div className="flex min-w-0 flex-1 items-center gap-3">{content}</div>
       )}
       {onRemove && (
         <button
@@ -77,9 +80,9 @@ export function FileChip({ name, contentType, sizeBytes, file, onRemove, disable
           onClick={onRemove}
           disabled={disabled}
           aria-label={`Remove ${name}`}
-          className="mr-1 rounded-lg p-1 text-muted hover:bg-hover hover:text-ink disabled:opacity-60"
+          className="rounded-lg p-1 text-muted hover:bg-surface-2 hover:text-ink disabled:opacity-60"
         >
-          <X className="size-4" aria-hidden={true} />
+          <X className="size-4" aria-hidden="true" />
         </button>
       )}
     </div>
@@ -90,7 +93,7 @@ export function FileChip({ name, contentType, sizeBytes, file, onRemove, disable
 export function FileChipList({ files, className }: { files: FileResponse[]; className?: string }) {
   if (files.length === 0) return null
   return (
-    <ul className={cn('grid gap-2 sm:grid-cols-2', className)}>
+    <ul className={cn('grid gap-2.5 sm:grid-cols-2', className)}>
       {files.map((file) => (
         <li key={file.id} className="min-w-0">
           <FileChip name={file.originalName} contentType={file.contentType} sizeBytes={file.sizeBytes} file={file} />

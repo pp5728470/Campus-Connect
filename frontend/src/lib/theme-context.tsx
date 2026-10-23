@@ -10,21 +10,43 @@ interface ThemeContextValue {
 const STORAGE_KEY = 'theme'
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-/** Saved choice first, then the operating system preference. */
-function initialTheme(): Theme {
+/** Explicit saved choice, otherwise the operating-system preference (like the design HTML). */
+function resolveTheme(): Theme {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved === 'light' || saved === 'dark') return saved
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(initialTheme)
+function applyTheme(theme: Theme) {
+  document.documentElement.setAttribute('data-theme', theme)
+  // Keep class in sync for any leftover `.dark` selectors during the migration.
+  document.documentElement.classList.toggle('dark', theme === 'dark')
+}
 
-  // The .dark class on <html> switches the CSS variables defined in index.css.
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(() => {
+    const next = resolveTheme()
+    applyTheme(next)
+    return next
+  })
+
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+    applyTheme(theme)
     localStorage.setItem(STORAGE_KEY, theme)
   }, [theme])
+
+  // Follow OS changes only when the user has not pinned a preference yet.
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = () => {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved === 'light' || saved === 'dark') return
+      const next = media.matches ? 'dark' : 'light'
+      setTheme(next)
+    }
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
 
   const toggleTheme = useCallback(() => setTheme((current) => (current === 'dark' ? 'light' : 'dark')), [])
   const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme])

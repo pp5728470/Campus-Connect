@@ -1,5 +1,5 @@
 -- CampusConnect Phase 2 seed (run after Phase 1 seed and Flyway V2)
--- Assumes classrooms 1–3 and users 1–10 from seed_phase1.sql exist.
+-- Assumes classrooms 1–6 and users 1–10 from seed_phase1.sql exist (content still uses classes 1–3).
 -- Announcements / assignments / submissions are text-based (no binary uploads).
 
 SET NAMES utf8mb4;
@@ -28,7 +28,7 @@ INSERT INTO topics (id, classroom_id, name, sort_order, created_at) VALUES
 -- Stream announcements
 INSERT INTO announcements (id, classroom_id, author_id, body, pinned, created_at, updated_at) VALUES
 (1, 1, 1,
- 'Welcome to Advanced Java – MCA Sem II. Please join the lab WhatsApp group and keep your JDK 21 setup ready before Friday.',
+ 'Welcome to Advanced Java. Please join the lab WhatsApp group and keep your JDK 21 setup ready before Friday.',
  TRUE, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
 (2, 1, 1,
  'Lab 204 is booked for the JDBC practical on Monday 10:00–12:00. Bring your MySQL Workbench dump from last week.',

@@ -120,16 +120,19 @@ export function AnnouncementCard({
   }
 
   return (
-    <Card className="flex flex-col gap-4 p-4">
+    <Card className="flex flex-col gap-4 p-4 shadow-card">
       <div className="flex items-start gap-3">
         <Avatar name={announcement.authorName} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-body font-semibold">{announcement.authorName}</p>
-          <p className="text-meta text-muted">
-            {timeAgo(announcement.createdAt)}
-            {announcement.pinned && <span className="font-medium text-accent"> &middot; Pinned</span>}
-          </p>
+          <p className="text-meta text-muted">{timeAgo(announcement.createdAt)}</p>
         </div>
+        {announcement.pinned && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-meta font-semibold text-accent">
+            <Pin className="size-3.5" aria-hidden="true" />
+            Pinned
+          </span>
+        )}
         {isTeacher && !archived && (
           <Dropdown
             label="Announcement actions"
@@ -149,7 +152,7 @@ export function AnnouncementCard({
       <p className="whitespace-pre-wrap break-words text-body">{announcement.body}</p>
       <FileChipList files={announcement.attachments} />
 
-      <div className="flex flex-col gap-3 border-t border-border pt-4">
+      <div className="-mx-4 -mb-4 flex flex-col gap-3 rounded-b-xl border-t border-border bg-surface-2 px-4 py-4">
         {announcement.comments.length > 0 && (
           <>
             <h3 className="text-meta font-semibold text-muted">
@@ -186,7 +189,7 @@ export function AnnouncementCard({
               aria-label={`Add a class comment to the post by ${announcement.authorName}`}
               placeholder="Add a class comment"
               maxLength={2000}
-              className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-body placeholder:text-muted focus-visible:border-accent focus-visible:outline-offset-0"
+              className="min-w-0 flex-1 rounded-full border border-border-strong bg-surface px-4 py-2 text-body placeholder:text-muted focus-visible:border-accent focus-visible:outline-offset-0"
             />
             <Button
               type="submit"

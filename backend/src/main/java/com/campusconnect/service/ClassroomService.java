@@ -15,6 +15,7 @@ import com.campusconnect.repository.UserRepository;
 import com.campusconnect.security.SecurityUtils;
 import com.campusconnect.security.UserPrincipal;
 import com.campusconnect.util.ClassCodeGenerator;
+import com.campusconnect.util.CoverColor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,8 +26,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ClassroomService {
-
-    private static final String DEFAULT_BANNER = "#1A73E8";
 
     private final ClassroomRepository classroomRepository;
     private final EnrollmentRepository enrollmentRepository;
@@ -51,7 +50,7 @@ public class ClassroomService {
                 .room(trimToNull(request.room()))
                 .description(trimToNull(request.description()))
                 .classCode(generateUniqueCode())
-                .bannerColor(request.bannerColor() != null ? request.bannerColor() : DEFAULT_BANNER)
+                .bannerColor(CoverColor.normalizeOrDefault(request.bannerColor()))
                 .owner(owner)
                 .archived(false)
                 .build();
@@ -77,7 +76,7 @@ public class ClassroomService {
         classroom.setRoom(trimToNull(request.room()));
         classroom.setDescription(trimToNull(request.description()));
         if (request.bannerColor() != null) {
-            classroom.setBannerColor(request.bannerColor());
+            classroom.setBannerColor(CoverColor.normalizeOrDefault(request.bannerColor()));
         }
         return classroomMapper.toResponse(classroom, ClassRole.TEACHER);
     }

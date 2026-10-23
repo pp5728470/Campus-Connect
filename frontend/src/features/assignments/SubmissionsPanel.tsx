@@ -24,9 +24,9 @@ const FILTER_STATUSES: Record<Exclude<Filter, 'ALL'>, SubmissionStatus[]> = {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <Card className="p-4">
-      <p className="text-title font-semibold">{value}</p>
-      <p className="text-meta text-muted">{label}</p>
+    <Card className="p-4 shadow-card">
+      <p className="font-serif text-[32px] font-normal leading-none">{value}</p>
+      <p className="mt-1.5 text-meta text-muted">{label}</p>
     </Card>
   )
 }

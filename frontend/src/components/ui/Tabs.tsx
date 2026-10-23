@@ -16,6 +16,7 @@ interface TabsProps {
   idPrefix: string
 }
 
+/** Pill-style segmented tabs; selected state uses dark ink on the surface. */
 export function Tabs({ items, value, onChange, label, idPrefix }: TabsProps) {
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -38,7 +39,7 @@ export function Tabs({ items, value, onChange, label, idPrefix }: TabsProps) {
       role="tablist"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className="flex gap-1 overflow-x-auto border-b border-border"
+      className="flex max-w-full gap-1.5 overflow-x-auto rounded-xl border border-line bg-surface p-1"
     >
       {items.map((item) => {
         const active = item.id === value
@@ -53,8 +54,8 @@ export function Tabs({ items, value, onChange, label, idPrefix }: TabsProps) {
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(item.id)}
             className={cn(
-              '-mb-px whitespace-nowrap border-b-2 px-4 py-3 text-body font-medium transition-colors',
-              active ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-ink',
+              'h-9 shrink-0 whitespace-nowrap rounded-lg px-4 text-body font-medium transition-colors',
+              active ? 'bg-ink font-semibold text-surface' : 'bg-transparent text-muted hover:text-ink',
             )}
           >
             {item.label}

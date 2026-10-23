@@ -18,7 +18,7 @@ export function Textarea({ label, error, hint, className, id, rows = 3, ...props
         rows={rows}
         aria-invalid={error ? true : undefined}
         aria-describedby={error || hint ? `${textareaId}-message` : undefined}
-        className={cn(controlClass(Boolean(error)), 'resize-y', className)}
+        className={cn(controlClass(Boolean(error)), 'h-auto min-h-[88px] resize-y py-2.5', className)}
         {...props}
       />
     </Field>

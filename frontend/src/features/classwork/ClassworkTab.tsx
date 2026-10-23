@@ -192,12 +192,11 @@ export function ClassworkTab({ classroom }: { classroom: Classroom }) {
 
       {!isLoading && !isError && groups.length === 0 && (
         <EmptyState
-          icon={ClipboardList}
-          title="No classwork yet"
+          title="No assignments yet"
           description={
             isTeacher
-              ? 'Create an assignment to give your students something to work on.'
-              : 'Assignments from your teacher will appear here.'
+              ? 'Create an assignment so students have work to turn in.'
+              : 'No assignments yet. Your teacher will post them here.'
           }
         />
       )}
@@ -206,7 +205,9 @@ export function ClassworkTab({ classroom }: { classroom: Classroom }) {
         <section key={group.key} aria-label={group.topic?.name ?? 'No topic'} className="flex flex-col gap-2">
           {(group.topic || showNoTopicHeading) && (
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
-              <h2 className="text-section font-semibold">{group.topic?.name ?? 'No topic'}</h2>
+              <h2 className="font-serif text-[24px] font-normal tracking-[-0.015em]">
+                {group.topic?.name ?? 'No topic'}
+              </h2>
               {group.topic && canEdit && (
                 <Dropdown
                   label={`Actions for topic ${group.topic.name}`}

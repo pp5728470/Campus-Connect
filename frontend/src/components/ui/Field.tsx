@@ -13,8 +13,8 @@ interface FieldProps {
 /** Label, control slot and message line shared by Input, Textarea and Select. */
 export function Field({ id, label, error, hint, className, children }: FieldProps) {
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <label htmlFor={id} className="text-meta font-medium text-ink">
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      <label htmlFor={id} className="text-[13px] font-medium text-ink">
         {label}
       </label>
       {children}
@@ -33,7 +33,9 @@ export function Field({ id, label, error, hint, className, children }: FieldProp
 
 export const controlClass = (hasError: boolean) =>
   cn(
-    'w-full rounded-lg border bg-surface px-3 py-2 text-body text-ink placeholder:text-muted',
-    'focus-visible:border-accent focus-visible:outline-offset-0 disabled:bg-bg disabled:text-muted',
-    hasError ? 'border-danger' : 'border-border',
+    'h-11 w-full rounded-[10px] border bg-surface px-3.5 text-body text-ink placeholder:text-muted',
+    'transition-[border-color,box-shadow] duration-100',
+    'focus:border-accent focus:shadow-[0_0_0_4px_var(--accent-soft)] focus:outline-none',
+    'disabled:bg-bg disabled:text-muted',
+    hasError ? 'border-danger' : 'border-line-strong',
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Countdown } from '@/components/ui/Countdown'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { FileChipList } from '@/components/ui/FileChip'
 import { FileUploader } from '@/components/ui/FileUploader'
@@ -10,6 +11,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/Toast'
 import { useMySubmission, useSubmitWork, useUnsubmitWork } from '@/hooks/use-assignments'
 import { useUploadFiles } from '@/hooks/use-files'
+import { remainingUntil } from '@/lib/countdown'
 import { getErrorMessage } from '@/lib/errors'
 import { timeAgo } from '@/lib/format'
 import type { Assignment, FileResponse, Submission } from '@/types'
@@ -83,7 +85,7 @@ function SubmissionForm({ assignment, submission }: { assignment: Assignment; su
         progress={progress}
         disabled={busy}
       />
-      <Button loading={busy} onClick={() => void submit()}>
+      <Button loading={busy} size="lg" className="w-full" onClick={() => void submit()}>
         {isLate ? 'Turn in late' : 'Turn in'}
       </Button>
     </div>
@@ -193,12 +195,29 @@ export function YourWorkPanel({ assignment, archived = false }: YourWorkPanelPro
     )
   }
 
+  const left = remainingUntil(assignment.dueAt)
+  const showCountdown =
+    left !== null &&
+    submission &&
+    submission.status !== 'SUBMITTED' &&
+    submission.status !== 'LATE' &&
+    submission.status !== 'GRADED' &&
+    submission.status !== 'RETURNED'
+
   return (
-    <Card className="flex flex-col gap-4 p-4">
+    <Card className="flex flex-col gap-4 p-4 shadow-card">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-section font-semibold">Your work</h2>
+        <h2 className="text-[15px] font-semibold">Your work</h2>
         {submission && <StatusBadge status={submission.status} />}
       </div>
+      {showCountdown && left && (
+        <Countdown
+          days={left.days}
+          hours={left.hours}
+          minutes={left.minutes}
+          label={`Time left: ${left.days} days, ${left.hours} hours, ${left.minutes} minutes`}
+        />
+      )}
       {body}
     </Card>
   )

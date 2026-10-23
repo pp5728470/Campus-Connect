@@ -58,7 +58,7 @@ export function LoginForm() {
           Forgot password?
         </Link>
       </div>
-      <Button type="submit" loading={isSubmitting}>
+      <Button type="submit" loading={isSubmitting} className="h-11 w-full">
         Sign in
       </Button>
     </form>

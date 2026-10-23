@@ -1,15 +1,7 @@
 import { z } from 'zod'
+import { COVER_IDS, DEFAULT_COVER } from '@/lib/covers'
 
-export const BANNER_COLORS = [
-  '#1A73E8',
-  '#188038',
-  '#B06000',
-  '#C5221F',
-  '#7B1FA2',
-  '#00796B',
-  '#5F6368',
-  '#3C4043',
-] as const
+export { COVER_IDS, DEFAULT_COVER, COVER_IDS as BANNER_COLORS }
 
 export const createClassSchema = z.object({
   name: z.string().trim().min(1, 'Class name is required').max(120, 'Class name must be at most 120 characters'),
@@ -17,7 +9,7 @@ export const createClassSchema = z.object({
   subject: z.string().trim().max(120, 'Subject must be at most 120 characters'),
   room: z.string().trim().max(60, 'Room must be at most 60 characters'),
   description: z.string().trim().max(1000, 'Description must be at most 1000 characters'),
-  bannerColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  bannerColor: z.enum(COVER_IDS, { message: 'Choose one of the six notebook covers' }),
 })
 
 export const joinClassSchema = z.object({

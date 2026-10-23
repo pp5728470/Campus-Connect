@@ -1,4 +1,4 @@
-import { Ellipsis, Eye, FolderOpen, Plus, Trash2 } from 'lucide-react'
+import { Ellipsis, Eye, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -166,12 +166,11 @@ export function MaterialsTab({ classroom }: { classroom: Classroom }) {
 
       {!isLoading && !isError && groups.length === 0 && (
         <EmptyState
-          icon={FolderOpen}
           title="No materials yet"
           description={
             isTeacher
               ? 'Add notes, slides or reference files for your students.'
-              : 'Notes and reference files shared by your teacher will appear here.'
+              : 'Notes and handouts from your teacher will appear here.'
           }
         />
       )}
@@ -179,7 +178,9 @@ export function MaterialsTab({ classroom }: { classroom: Classroom }) {
       {groups.map((group) => (
         <section key={group.key} aria-label={group.topic?.name ?? 'No topic'} className="flex flex-col gap-3">
           {(group.topic || showNoTopicHeading) && (
-            <h2 className="border-b border-border pb-2 text-section font-semibold">{group.topic?.name ?? 'No topic'}</h2>
+            <h2 className="border-b border-border pb-2 font-serif text-[24px] font-normal tracking-[-0.015em]">
+              {group.topic?.name ?? 'No topic'}
+            </h2>
           )}
           {group.materials.map((material) => (
             <MaterialCard

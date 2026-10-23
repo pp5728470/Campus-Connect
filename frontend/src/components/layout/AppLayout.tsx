@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { CommandPalette } from '@/features/search/CommandPalette'
-import { cn } from '@/lib/cn'
+import { MobileBottomNav } from './MobileBottomNav'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
 const DESKTOP_QUERY = '(min-width: 1024px)'
 
 export function AppLayout() {
-  // Open by default on desktop, closed on smaller screens.
   const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia(DESKTOP_QUERY).matches)
-
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // Ctrl+K (Cmd+K on macOS) toggles the search palette from anywhere.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -45,18 +42,13 @@ export function AppLayout() {
       <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
       <div className="relative flex min-h-0 flex-1">
         <Sidebar open={sidebarOpen} onNavigate={closeOnMobile} />
-        {/* Dimmed backdrop behind the mobile drawer */}
-        <div
-          aria-hidden="true"
-          onClick={() => setSidebarOpen(false)}
-          className={cn('fixed inset-0 top-14 z-10 bg-black/40 lg:hidden', sidebarOpen ? 'block' : 'hidden')}
-        />
-        <main id="main" className="min-w-0 flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
+        <main id="main" className="app-main-pad min-w-0 flex-1 overflow-y-auto bg-bg">
+          <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:px-10">
             <Outlet />
           </div>
         </main>
       </div>
+      <MobileBottomNav />
     </div>
   )
 }

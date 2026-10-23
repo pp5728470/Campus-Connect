@@ -37,7 +37,8 @@ public class Classroom {
     @Column(name = "class_code", nullable = false, unique = true, length = 7, columnDefinition = "CHAR(7)")
     private String classCode;
 
-    @Column(name = "banner_color", nullable = false, length = 7)
+    /** One of: teal, maroon, forest, indigo, steel, ochre. */
+    @Column(name = "banner_color", nullable = false, length = 16)
     private String bannerColor;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -26,10 +26,14 @@ INSERT INTO users (id, full_name, email, password_hash, role, avatar_url, create
 (9, 'Vikram Singh', 'vikram.singh@student.college.edu', @pwd, 'STUDENT', NULL, NOW(), NOW()),
 (10, 'Meera Joshi', 'meera.joshi@student.college.edu', @pwd, 'STUDENT', NULL, NOW(), NOW());
 
+-- Six notebooks, each with a different cover colour.
 INSERT INTO classrooms (id, name, section, subject, room, description, class_code, banner_color, owner_id, archived, created_at) VALUES
-(1, 'Advanced Java – MCA Sem II', 'A', 'Advanced Java', 'Lab 204', 'Core Java, JDBC, Servlets, and Spring Boot for MCA Semester II.', 'AJV2MCA', '#1967D2', 1, FALSE, NOW()),
-(2, 'Database Management Systems', 'B', 'DBMS', 'Room 112', 'Relational modelling, SQL, transactions, and MySQL administration.', 'DBMS7K2', '#137333', 1, FALSE, NOW()),
-(3, 'Web Technologies Lab', 'A', 'Web Technologies', 'Lab 301', 'HTML, CSS, JavaScript, and React for building campus web apps.', 'WEBTECH', '#C5221F', 2, FALSE, NOW());
+(1, 'Advanced Java', 'Div A', 'Advanced Java', 'Lab 204', 'JDBC, Servlets, JSP and Spring Boot for MCA Semester II.', 'AJV2MCA', 'teal', 1, FALSE, NOW()),
+(2, 'Software Engineering', 'Div A', 'Software Engineering', 'Room 118', 'Requirements, UML, testing and project documentation.', 'SEENG22', 'maroon', 1, FALSE, NOW()),
+(3, 'Cloud Computing', 'Elective', 'Cloud Computing', 'Lab 301', 'AWS, virtualisation and deploying MCA project services.', 'CLOUD9X', 'forest', 2, FALSE, NOW()),
+(4, 'Data Structures', 'Div A', 'Data Structures', 'Room 112', 'Trees, graphs, hashing and analysis of algorithms.', 'DSTREE1', 'indigo', 2, FALSE, NOW()),
+(5, 'Web Technologies', 'Div A', 'Web Technologies', 'Lab 210', 'HTML, CSS, JavaScript and React for campus web apps.', 'WEBTECH', 'steel', 1, FALSE, NOW()),
+(6, 'Discrete Mathematics', 'Div B', 'Discrete Mathematics', 'Room 105', 'Logic, sets, relations and combinatorics for MCA Sem I.', 'DISCMTH', 'ochre', 2, FALSE, NOW());
 
 -- Teachers enrolled as TEACHER; students as STUDENT
 INSERT INTO enrollments (classroom_id, user_id, role_in_class, joined_at) VALUES
@@ -49,4 +53,19 @@ INSERT INTO enrollments (classroom_id, user_id, role_in_class, joined_at) VALUES
 (3, 6, 'STUDENT', NOW()),
 (3, 7, 'STUDENT', NOW()),
 (3, 8, 'STUDENT', NOW()),
-(3, 10, 'STUDENT', NOW());
+(3, 10, 'STUDENT', NOW()),
+(4, 2, 'TEACHER', NOW()),
+(4, 3, 'STUDENT', NOW()),
+(4, 4, 'STUDENT', NOW()),
+(4, 5, 'STUDENT', NOW()),
+(4, 9, 'STUDENT', NOW()),
+(5, 1, 'TEACHER', NOW()),
+(5, 3, 'STUDENT', NOW()),
+(5, 6, 'STUDENT', NOW()),
+(5, 7, 'STUDENT', NOW()),
+(5, 10, 'STUDENT', NOW()),
+(6, 2, 'TEACHER', NOW()),
+(6, 4, 'STUDENT', NOW()),
+(6, 8, 'STUDENT', NOW()),
+(6, 9, 'STUDENT', NOW()),
+(6, 10, 'STUDENT', NOW());

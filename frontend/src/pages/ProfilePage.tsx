@@ -18,12 +18,12 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-title font-semibold">Profile</h1>
-      <Card className="max-w-2xl">
+      <h1 className="font-serif text-[34px] font-normal tracking-[-0.02em]">Settings</h1>
+      <Card className="max-w-2xl shadow-card">
         <div className="flex items-center gap-4 border-b border-border p-6">
           <Avatar name={user.fullName} src={user.avatarUrl} size="lg" />
           <div className="min-w-0">
-            <p className="truncate text-section font-semibold">{user.fullName}</p>
+            <p className="truncate font-serif text-[26px] font-normal">{user.fullName}</p>
             <div className="mt-1">
               <Badge tone="accent">{user.role.charAt(0) + user.role.slice(1).toLowerCase()}</Badge>
             </div>

@@ -185,7 +185,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       onMouseDown={(event) => {
         if (event.target === ref.current) onClose()
       }}
-      className="mx-auto mb-auto mt-16 w-full max-w-xl rounded-lg border border-border bg-surface p-0 text-ink backdrop:bg-black/40"
+      className="mx-auto mb-auto mt-16 w-full max-w-xl rounded-xl border border-border bg-surface p-0 text-ink shadow-card backdrop:bg-black/40"
     >
       {open && <PaletteBody onClose={onClose} />}
     </dialog>

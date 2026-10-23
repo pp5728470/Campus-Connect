@@ -51,7 +51,7 @@ export default function ClassPage() {
             </Button>
             <Link
               to="/"
-              className="inline-flex items-center rounded-lg border border-accent bg-accent px-4 py-2 text-body font-medium text-white hover:bg-accent-hover"
+              className="inline-flex items-center rounded-lg border border-accent bg-accent px-4 py-2 text-body font-medium text-accent-ink hover:bg-accent-hover"
             >
               Back to dashboard
             </Link>

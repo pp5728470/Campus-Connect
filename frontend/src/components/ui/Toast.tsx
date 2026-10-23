@@ -21,7 +21,7 @@ const ToastContext = createContext<ToastApi | null>(null)
 const DISMISS_AFTER_MS = 4000
 
 const icons = {
-  success: { Icon: CheckCircle2, color: 'text-success' },
+  success: { Icon: CheckCircle2, color: 'text-ok' },
   error: { Icon: XCircle, color: 'text-danger' },
   info: { Icon: Info, color: 'text-accent' },
 }
@@ -65,7 +65,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={toast.id}
               role={toast.kind === 'error' ? 'alert' : 'status'}
-              className="pointer-events-auto flex w-full items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-body sm:w-auto sm:max-w-sm"
+              className="pointer-events-auto flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-body shadow-[var(--shadow)] sm:w-auto sm:max-w-sm"
             >
               <Icon className={cn('size-4 shrink-0', color)} aria-hidden={true} />
               <span className="flex-1">{toast.message}</span>
@@ -73,7 +73,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => dismiss(toast.id)}
                 aria-label="Dismiss notification"
-                className="rounded-lg p-1 text-muted hover:bg-hover hover:text-ink"
+                className="rounded-[10px] p-1 text-muted hover:bg-surface-2 hover:text-ink"
               >
                 <X className="size-4" aria-hidden={true} />
               </button>

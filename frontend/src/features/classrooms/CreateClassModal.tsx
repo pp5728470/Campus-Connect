@@ -1,16 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { NotebookCover } from '@/components/ui/NotebookCover'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/Toast'
 import { useCreateClassroom } from '@/hooks/use-classrooms'
+import { COVER_COLORS, DEFAULT_COVER } from '@/lib/covers'
 import { getErrorMessage } from '@/lib/errors'
-import { BANNER_COLORS, createClassSchema, type CreateClassValues } from './schemas'
+import { cn } from '@/lib/cn'
+import { createClassSchema, type CreateClassValues } from './schemas'
 
 interface CreateClassModalProps {
   open: boolean
@@ -26,11 +28,19 @@ function CreateClassForm({ onClose }: { onClose: () => void }) {
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { errors },
   } = useForm<CreateClassValues>({
     resolver: zodResolver(createClassSchema),
-    defaultValues: { name: '', section: '', subject: '', room: '', description: '', bannerColor: BANNER_COLORS[0] },
+    defaultValues: {
+      name: '',
+      section: '',
+      subject: '',
+      room: '',
+      description: '',
+      bannerColor: DEFAULT_COVER,
+    },
   })
   const selectedColor = watch('bannerColor')
 
@@ -74,23 +84,41 @@ function CreateClassForm({ onClose }: { onClose: () => void }) {
       <Textarea label="Description" error={errors.description?.message} {...register('description')} />
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-meta font-medium">Banner color</legend>
-        <div className="flex flex-wrap gap-2">
-          {BANNER_COLORS.map((color) => (
-            <label
-              key={color}
-              className="relative cursor-pointer rounded-full has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
-            >
-              <input type="radio" value={color} className="sr-only" aria-label={color} {...register('bannerColor')} />
-              <span
-                className="flex size-8 items-center justify-center rounded-full border border-border text-white"
-                style={{ backgroundColor: color }}
+        <legend className="mb-1 text-meta font-medium">Notebook cover</legend>
+        <input type="hidden" {...register('bannerColor')} />
+        <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Notebook cover colour">
+          {COVER_COLORS.map((cover) => {
+            const selected = selectedColor === cover.id
+            return (
+              <button
+                key={cover.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={cover.label}
+                onClick={() => setValue('bannerColor', cover.id, { shouldValidate: true, shouldDirty: true })}
+                className={cn(
+                  'rounded-md p-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                  selected && 'ring-2 ring-accent ring-offset-2 ring-offset-surface',
+                )}
               >
-                {selectedColor === color && <Check className="size-4" aria-hidden="true" />}
-              </span>
-            </label>
-          ))}
+                <NotebookCover
+                  size="mini"
+                  color={cover.id}
+                  showLabel={false}
+                  ribbon={false}
+                  corner={false}
+                  className="pointer-events-none w-11"
+                />
+              </button>
+            )
+          })}
         </div>
+        {errors.bannerColor && (
+          <p role="alert" className="text-meta text-danger">
+            {errors.bannerColor.message}
+          </p>
+        )}
       </fieldset>
 
       <div className="flex justify-end gap-2">
@@ -108,8 +136,7 @@ function CreateClassForm({ onClose }: { onClose: () => void }) {
 export function CreateClassModal({ open, onClose }: CreateClassModalProps) {
   return (
     <Modal open={open} onClose={onClose} title="Create class" description="Students join with the class code generated for you.">
-      <CreateClassForm onClose={onClose} />
+      {open && <CreateClassForm onClose={onClose} />}
     </Modal>
   )
 }
-

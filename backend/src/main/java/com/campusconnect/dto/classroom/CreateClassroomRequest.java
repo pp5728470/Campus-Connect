@@ -21,7 +21,11 @@ public record CreateClassroomRequest(
         @Size(max = 1000, message = "Description must be at most 1000 characters")
         String description,
 
-        @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Banner color must be a hex color like #1A73E8")
+        @Pattern(
+                regexp = "^(teal|maroon|forest|indigo|steel|ochre)$",
+                flags = Pattern.Flag.CASE_INSENSITIVE,
+                message = "Banner color must be one of: teal, maroon, forest, indigo, steel, ochre"
+        )
         String bannerColor
 ) {
 }

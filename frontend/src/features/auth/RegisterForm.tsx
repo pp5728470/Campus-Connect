@@ -49,18 +49,20 @@ export function RegisterForm() {
       )}
 
       <fieldset className="flex flex-col gap-1">
-        <legend className="mb-1 text-meta font-medium">I am a</legend>
-        <div className="grid grid-cols-2 gap-2">
+        <legend className="mb-2 text-meta font-medium">I am a</legend>
+        <div className="grid grid-cols-2 gap-3">
           {roleOptions.map((option) => (
             <label
               key={option.value}
               className={cn(
-                'flex cursor-pointer flex-col gap-1 rounded-lg border p-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent',
-                selectedRole === option.value ? 'border-accent bg-accent-soft' : 'border-border hover:bg-hover',
+                'flex cursor-pointer flex-col gap-1.5 rounded-xl border p-4 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent',
+                selectedRole === option.value
+                  ? 'border-accent bg-accent-soft shadow-[inset_0_0_0_1px_var(--accent)]'
+                  : 'border-border bg-surface hover:bg-hover',
               )}
             >
               <input type="radio" value={option.value} className="sr-only" {...register('role')} />
-              <span className="text-body font-medium">{option.label}</span>
+              <span className="text-body font-semibold">{option.label}</span>
               <span className="text-meta text-muted">{option.description}</span>
             </label>
           ))}

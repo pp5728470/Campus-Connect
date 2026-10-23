@@ -11,6 +11,7 @@ import NotificationsPage from '@/pages/NotificationsPage'
 import ProfilePage from '@/pages/ProfilePage'
 import RegisterPage from '@/pages/RegisterPage'
 import ResetPasswordPage from '@/pages/ResetPasswordPage'
+import TodoPage from '@/pages/TodoPage'
 import { ProtectedRoute, PublicOnlyRoute } from './ProtectedRoute'
 
 export function AppRoutes() {
@@ -28,6 +29,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/todo" element={<TodoPage />} />
           <Route path="/classes/:classId/assignments/:assignmentId" element={<AssignmentDetailPage />} />
           <Route path="/classes/:id/:tab?" element={<ClassPage />} />
           <Route path="/profile" element={<ProfilePage />} />

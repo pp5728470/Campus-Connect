@@ -22,17 +22,17 @@ CampusConnect is a classroom management web app (similar to Google Classroom) bu
 - Frontend folders: src/{api, components/ui, components/layout, features/<feature>, hooks, lib, pages, routes, types}.
 
 ## Design rules (very important)
-The UI must look natural and hand-designed, NOT AI-generated.
-- No gradients, no glassmorphism, no glowing effects, no emojis anywhere in the UI.
-- One accent color only: #1A73E8 (used for primary buttons, active states, links). Neutral palette otherwise: background #F8F9FA, surface #FFFFFF, border #E3E5E8, text #1F2328, secondary text #5F6368.
-- Flat cards with 1px borders, no heavy shadows. Border radius 8px everywhere.
-- Font: Inter. Sizes: 24 (page title), 18 (section title), 14 (body), 12 (meta). Use weight for hierarchy, not color.
-- Spacing scale: 4, 8, 12, 16, 24, 32. Never arbitrary values.
-- Layout inspired by Google Classroom: top bar, collapsible left sidebar listing classes, class banner, tabs (Stream, Classwork, Materials, People, Grades).
-- Every list has a proper empty state, a loading skeleton, and an error state.
-- Use relative dates ("2 days ago"), status labels ("Due tomorrow", "Missing", "Graded") in small colored text.
-- Fully responsive (mobile, tablet, desktop). Accessible: proper labels, focus states, keyboard navigation.
-- Seed data must look realistic (Indian college context: real-sounding names, subjects like "Advanced Java – MCA Sem II").
+Visual reference: CampusConnect-UI-Design.html. The UI must look natural and hand-designed, NOT AI-generated.
+- The signature element is the notebook: every class is shown as a notebook cover in its class colour (stitched spine, elastic band, ribbon, folded corner, page edges, ruled paper label with a red margin line). The colour of a class must be consistent everywhere it appears (cards, banner, sidebar spines, planner tabs, to-do items).
+- Fonts: Instrument Serif for page and section headings; Instrument Sans for all interface and body text; Caveat only where a person would write by hand (notebook labels and sticky notes). Nowhere else.
+- One accent colour (ink blue) for actions, links, focus and selected states. Status colours: amber = due soon, brick = missing/errors, green = graded, blue = turned in.
+- Subtle shading is allowed only for physical objects (notebook elastic, pencil, page edges). No decorative gradient backgrounds, no glassmorphism, no glowing effects, no emojis.
+- Only one non-interactive animation: the notebooks dropping in on the login page. All other motion responds to user actions (hover lift on notebooks, focus rings, modals). Respect prefers-reduced-motion.
+- Sentence case everywhere. Realistic Indian college content in seed data and empty states.
+- Light and dark themes, both fully designed. Accessible: 4.5:1 text contrast, visible keyboard focus, labels on all inputs, aria-label on icon-only buttons.
+- Class cover colours only: teal #0E6B66, maroon #86293F, forest #2F6A3B, indigo #363D8C, steel #2C5A84, ochre #8C5F0E.
+- Spacing scale: 4, 8, 12, 16, 24, 32. Layout: top bar, left sidebar with cover spines, class banner as notebook, tabs (Stream, Classwork, Materials, People, Grades).
+- Every list has a proper empty state, a loading skeleton, and an error state. Use relative dates and status labels in small coloured text. Fully responsive.
 
 ## Code quality
 - Clean, readable, commented where useful. No dead code, no TODO placeholders, no mock data in production code paths.

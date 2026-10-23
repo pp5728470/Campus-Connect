@@ -53,8 +53,8 @@ export default function NotificationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-title font-semibold">Notifications</h1>
-          <p className="text-body text-muted">{unread === 0 ? 'You are all caught up.' : `${unread} unread`}</p>
+          <h1 className="font-serif text-[34px] font-normal tracking-[-0.02em]">Notifications</h1>
+          <p className="mt-1 text-body text-muted">{unread === 0 ? 'You are all caught up.' : `${unread} unread`}</p>
         </div>
         <Button variant="secondary" disabled={unread === 0} loading={markAll.isPending} onClick={() => void markAllRead()}>
           Mark all as read

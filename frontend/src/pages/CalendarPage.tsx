@@ -11,12 +11,13 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useCalendarMonth } from '@/hooks/use-calendar'
 import { useClassrooms } from '@/hooks/use-classrooms'
 import { cn } from '@/lib/cn'
+import { DEFAULT_COVER, resolveCoverColor } from '@/lib/covers'
 import type { CalendarEvent } from '@/types'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MAX_CHIPS = 3
 /** Used when a class is not in the user's list (for example an archived one). */
-const FALLBACK_COLOR = '#5F6368'
+const FALLBACK_COLOR = DEFAULT_COVER
 
 const dayKey = (date: Date) => format(date, 'yyyy-MM-dd')
 
@@ -29,7 +30,10 @@ export default function CalendarPage() {
   const { data: classes } = useClassrooms()
 
   const colors = useMemo(
-    () => new Map((classes?.content ?? []).map((classroom) => [classroom.id, classroom.bannerColor])),
+    () =>
+      new Map(
+        (classes?.content ?? []).map((classroom) => [classroom.id, resolveCoverColor(classroom.bannerColor)]),
+      ),
     [classes],
   )
   const colorOf = (event: CalendarEvent) => colors.get(event.classroomId) ?? FALLBACK_COLOR
@@ -67,8 +71,8 @@ export default function CalendarPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-title font-semibold">Calendar</h1>
-          <p className="text-body text-muted">Assignment due dates across your classes.</p>
+          <h1 className="font-serif text-[34px] font-normal tracking-[-0.02em]">Calendar</h1>
+          <p className="mt-1 text-body text-muted">Assignment due dates across your notebooks.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => setCursor(startOfMonth(new Date()))}>

@@ -1,4 +1,3 @@
-import { AlertCircle } from 'lucide-react'
 import { Button } from './Button'
 import { EmptyState } from './EmptyState'
 
@@ -12,13 +11,12 @@ interface ErrorStateProps {
 /** Shown when a request fails; offers a retry when one is available. */
 export function ErrorState({
   title,
-  description = 'Something went wrong while contacting the server.',
+  description = 'Something went wrong while contacting the server. Try again in a moment.',
   onRetry,
   retrying,
 }: ErrorStateProps) {
   return (
     <EmptyState
-      icon={AlertCircle}
       title={title}
       description={description}
       action={
