@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
- * CampusConnect design tokens — copied from CampusConnect-UI-Design.html.
+ * CampusConnect design tokens — copied from docs/design/CampusConnect-UI-Design.html.
  * Tailwind utilities are wired via @theme below (bg-surface, text-muted, border-line, …).
  */
 
@@ -458,34 +458,35 @@
     background-size: 22px 22px;
   }
 
+  /* Fills the flex-1 desk region above the quote; bottom inset leaves room for the sticky. */
   .login-desk {
     position: absolute;
-    inset: 30px 20px 150px;
+    inset: 12px 8px 72px 8px;
   }
 
   .login-desk .nb-drop {
     position: absolute;
-    height: 330px;
-    width: 250px;
+    height: min(330px, 72%);
+    width: min(250px, 42%);
   }
 
   .login-desk .nb-drop-1 {
     left: 2%;
-    top: 70px;
+    top: 12%;
     transform: rotate(-11deg);
     animation: nb-drop-1 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
 
   .login-desk .nb-drop-2 {
     left: 26%;
-    top: 22px;
+    top: 4%;
     transform: rotate(-2deg);
     animation: nb-drop-2 0.9s 0.12s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
 
   .login-desk .nb-drop-3 {
     left: 50%;
-    top: 76px;
+    top: 14%;
     transform: rotate(8deg);
     animation: nb-drop-3 0.9s 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }

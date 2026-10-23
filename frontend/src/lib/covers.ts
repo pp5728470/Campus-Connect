@@ -1,4 +1,4 @@
-/** The six notebook cover colours from CampusConnect-UI-Design.html. */
+/** The six notebook cover colours from docs/design/CampusConnect-UI-Design.html. */
 export const COVER_COLORS = [
   { id: 'teal', hex: '#0E6B66', label: 'Teal', className: 'nb-c-teal' },
   { id: 'maroon', hex: '#86293F', label: 'Maroon', className: 'nb-c-maroon' },

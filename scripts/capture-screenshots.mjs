@@ -1,11 +1,16 @@
 /**
- * Captures redesign screenshots for the project report into docs/screenshots/.
- * Login comes from the running Vite app; other screens from the design HTML frames
- * when MySQL/backend is unavailable.
- */
-/**
- * Run from frontend/ after: npm install --no-save playwright@1.49.1
+ * Capture real CampusConnect UI screenshots into docs/screenshots/.
+ *
+ * Prerequisites:
+ *   - MySQL running with the campusconnect DB
+ *   - Backend on http://localhost:8080 (Flyway applied, seeds loaded)
+ *   - Frontend Vite on http://127.0.0.1:5173
+ *
+ * From frontend/:
+ *   npm install --no-save playwright@1.49.1
  *   node ../scripts/capture-screenshots.mjs
+ *
+ * Exits with code 1 if the API is unreachable. Never falls back to the design HTML.
  */
 import { createRequire } from 'node:module'
 import fs from 'node:fs'
@@ -16,128 +21,223 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
 const require = createRequire(path.join(root, 'frontend', 'package.json'))
 const { chromium } = require('playwright')
+
+const APP = process.env.CC_APP_URL ?? 'http://127.0.0.1:5173'
+const API = process.env.CC_API_URL ?? 'http://localhost:8080/api'
 const outDir = path.join(root, 'docs', 'screenshots')
-fs.mkdirSync(outDir, { recursive: true })
 
-const LOGIN = 'http://127.0.0.1:5173/login'
-const DESIGN = path.join(root, 'CampusConnect-UI-Design.html')
+const USERS = {
+  student: { email: 'aarav.mehta@student.college.edu', password: 'Password@123' },
+  teacher: { email: 'ananya.krishnan@college.edu', password: 'Password@123' },
+  admin: { email: 'admin@campusconnect.edu', password: 'Password@123' },
+}
 
-async function shot(page, name) {
-  const file = path.join(outDir, `${name}.png`)
-  await page.screenshot({ path: file, fullPage: false })
-  console.log('wrote', file)
+const DESKTOP = { width: 1440, height: 900 }
+const MOBILE = { width: 390, height: 844 }
+
+async function fail(message) {
+  console.error(`\nERROR: ${message}\n`)
+  process.exit(1)
+}
+
+async function assertApiReachable() {
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'probe@invalid', password: 'invalid' }),
+    })
+    // Any HTTP response means the server is up (401/400/422 are fine).
+    if (!res) await fail(`No response from API at ${API}`)
+  } catch (error) {
+    await fail(
+      `API is not reachable at ${API} (${error.cause?.code ?? error.message}).\n` +
+        `Start MySQL, run the backend (./mvnw spring-boot:run), apply seeds, then retry.`,
+    )
+  }
+}
+
+async function apiLogin(role) {
+  const user = USERS[role]
+  const res = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    await fail(`Login failed for ${user.email} (${res.status}): ${body}`)
+  }
+  return res.json()
+}
+
+async function apiGet(pathName, accessToken) {
+  const res = await fetch(`${API}${pathName}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok) {
+    await fail(`GET ${pathName} failed (${res.status})`)
+  }
+  return res.json()
 }
 
 async function setTheme(page, theme) {
   await page.evaluate((t) => {
     document.documentElement.setAttribute('data-theme', t)
     document.documentElement.classList.toggle('dark', t === 'dark')
-    try {
-      localStorage.setItem('theme', t)
-    } catch {
-      /* ignore */
-    }
+    localStorage.setItem('theme', t)
   }, theme)
-  await page.waitForTimeout(200)
+  await page.waitForTimeout(150)
 }
 
-async function captureLogin(browser) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
-  await page.goto(LOGIN, { waitUntil: 'networkidle' })
+async function shot(page, name, { fullPage = true } = {}) {
+  const file = path.join(outDir, `${name}.png`)
+  await page.screenshot({ path: file, fullPage })
+  console.log('wrote', path.relative(root, file))
+}
+
+async function sleep(ms) {
+  await new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function loginViaForm(page, { email, password }) {
+  // Avoid the backend login rate limiter between role switches.
+  await sleep(4000)
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    await page.goto(`${APP}/login`, { waitUntil: 'networkidle' })
+    await page.evaluate(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
+    await page.reload({ waitUntil: 'networkidle' })
+    await page.getByLabel(/^email$/i).fill(email)
+    await page.getByLabel(/^password$/i).fill(password)
+    await page.getByRole('button', { name: /^sign in$/i }).click()
+    try {
+      await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20000 })
+      await page.waitForLoadState('networkidle')
+      return
+    } catch {
+      const alert = page.getByRole('alert')
+      const msg = (await alert.count()) ? await alert.first().innerText() : 'unknown'
+      console.warn(`Form login attempt ${attempt} for ${email} failed: ${msg}`)
+      if (/too many|try again/i.test(msg)) await sleep(20000)
+      else await sleep(3000)
+    }
+  }
+  throw new Error(`Form login failed for ${email}`)
+}
+
+async function capturePair(page, baseName) {
   await setTheme(page, 'light')
-  await shot(page, 'login-light')
+  await shot(page, `${baseName}-light`)
   await setTheme(page, 'dark')
-  await shot(page, 'login-dark')
-  await page.close()
+  await shot(page, `${baseName}-dark`)
 }
 
-async function captureDesignFrames(browser) {
-  const page = await browser.newPage({ viewport: { width: 1400, height: 900 } })
-  await page.goto(`file:///${DESIGN.replace(/\\/g, '/')}`, { waitUntil: 'networkidle' })
+async function gotoAndSettle(page, urlPath) {
+  await page.goto(`${APP}${urlPath}`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(400)
+}
 
-  // Design HTML uses body class / data for theme — toggle dark by matching its script.
-  const frames = await page.locator('.frame').all()
-  // Expected order from design file: login, dashboard, stream, assignment, gradebook, phones…
-  const desktop = [
-    { index: 0, light: 'login-design-light', dark: 'login-design-dark' },
-    { index: 1, light: 'dashboard-light', dark: 'dashboard-dark' },
-    { index: 2, light: 'class-stream-light', dark: 'class-stream-dark' },
-    { index: 3, light: 'assignment-light', dark: 'assignment-dark' },
-    { index: 4, light: 'gradebook-light', dark: 'gradebook-dark' },
-  ]
+async function main() {
+  await assertApiReachable()
+  fs.mkdirSync(outDir, { recursive: true })
 
-  for (const theme of ['light', 'dark']) {
-    await page.evaluate((t) => {
-      document.documentElement.setAttribute('data-theme', t)
-      document.body?.setAttribute('data-theme', t)
-      if (t === 'dark') document.documentElement.classList.add('dark')
-      else document.documentElement.classList.remove('dark')
-    }, theme)
-    await page.waitForTimeout(150)
+  // Discover real IDs from the API so routes match seeded data.
+  const studentAuth = await apiLogin('student')
+  const teacherAuth = await apiLogin('teacher')
 
-    for (const entry of desktop) {
-      const frame = frames[entry.index]
-      if (!frame) continue
-      await frame.scrollIntoViewIfNeeded()
-      await page.waitForTimeout(100)
-      const box = await frame.boundingBox()
-      if (!box) continue
-      const name = theme === 'light' ? entry.light : entry.dark
-      // Skip duplicate login-design if we already have live login; still capture for report completeness under app names.
-      if (entry.index === 0) continue
-      await page.screenshot({
-        path: path.join(outDir, `${name}.png`),
-        clip: {
-          x: Math.max(0, box.x),
-          y: Math.max(0, box.y),
-          width: Math.min(box.width, 1400),
-          height: Math.min(box.height, 900),
-        },
-      })
-      console.log('wrote', name)
-    }
+  const studentClasses = await apiGet('/classrooms?page=0&size=20', studentAuth.accessToken)
+  const teacherClasses = await apiGet('/classrooms?page=0&size=20', teacherAuth.accessToken)
+  const teacherClass = (teacherClasses.content ?? []).find((c) => c.myRole === 'TEACHER') ?? teacherClasses.content?.[0]
+  if (!teacherClass || !(studentClasses.content ?? []).length) {
+    await fail('No classrooms found. Run seed_phase1.sql (and phase 2/3) against the database.')
   }
 
-  // Mobile to-do: last phone mockups section
-  const phonePage = await browser.newPage({ viewport: { width: 390, height: 844 } })
-  await phonePage.goto(`file:///${DESIGN.replace(/\\/g, '/')}`, { waitUntil: 'networkidle' })
+  // Prefer a student class that already has assignments (phase-2 seed covers classes 1–3).
+  let studentClass = null
+  let assignment = null
+  for (const classroom of studentClasses.content ?? []) {
+    const page = await apiGet(`/classrooms/${classroom.id}/assignments?page=0&size=20`, studentAuth.accessToken)
+    if (page.content?.length) {
+      studentClass = classroom
+      assignment = page.content[0]
+      break
+    }
+  }
+  if (!studentClass || !assignment) {
+    await fail('No assignments found for the student. Run seed_phase2.sql.')
+  }
 
-  for (const theme of ['light', 'dark']) {
-    await phonePage.evaluate((t) => {
-      document.documentElement.setAttribute('data-theme', t)
-      document.body?.setAttribute('data-theme', t)
-    }, theme)
-    const phones = phonePage.locator('.phone')
-    const count = await phones.count()
-    // Prefer a phone that shows to-do if present; else first phone.
-    let target = phones.first()
-    for (let i = 0; i < count; i++) {
-      const text = await phones.nth(i).innerText()
-      if (/to-do|missing|due today/i.test(text)) {
-        target = phones.nth(i)
-        break
+  const browser = await chromium.launch({ headless: true })
+  try {
+    // --- Login (logged out) ---
+    {
+      const page = await browser.newPage({ viewport: DESKTOP })
+      await page.goto(`${APP}/login`, { waitUntil: 'networkidle' })
+      await capturePair(page, 'login')
+      await page.close()
+    }
+
+    // --- Student: dashboard, assignment, calendar, notifications, mobile to-do ---
+    {
+      const page = await browser.newPage({ viewport: DESKTOP })
+      await loginViaForm(page, USERS.student)
+
+      await gotoAndSettle(page, '/')
+      await capturePair(page, 'dashboard')
+
+      await gotoAndSettle(page, `/classes/${studentClass.id}/assignments/${assignment.id}`)
+      await capturePair(page, 'assignment')
+
+      await gotoAndSettle(page, '/calendar')
+      await capturePair(page, 'calendar')
+
+      await gotoAndSettle(page, '/notifications')
+      await capturePair(page, 'notifications')
+
+      await page.setViewportSize(MOBILE)
+      await gotoAndSettle(page, '/todo')
+      await capturePair(page, 'mobile-todo')
+      await page.close()
+    }
+
+    // --- Teacher: class stream + gradebook ---
+    {
+      const page = await browser.newPage({ viewport: DESKTOP })
+      await loginViaForm(page, USERS.teacher)
+
+      await gotoAndSettle(page, `/classes/${teacherClass.id}/stream`)
+      await capturePair(page, 'class-stream')
+
+      await gotoAndSettle(page, `/classes/${teacherClass.id}/grades`)
+      await capturePair(page, 'gradebook')
+      await page.close()
+    }
+
+    // --- Admin dashboard ---
+    {
+      const page = await browser.newPage({ viewport: DESKTOP })
+      try {
+        await loginViaForm(page, USERS.admin)
+      } catch (error) {
+        await fail(
+          `Admin login failed for ${USERS.admin.email}. ${error.message}. ` +
+            `If the account is missing, run seed_phase3.sql.`,
+        )
       }
+      await gotoAndSettle(page, '/admin')
+      await capturePair(page, 'admin')
+      await page.close()
     }
-    await target.scrollIntoViewIfNeeded()
-    await phonePage.waitForTimeout(100)
-    const box = await target.boundingBox()
-    if (box) {
-      await phonePage.screenshot({
-        path: path.join(outDir, `mobile-todo-${theme}.png`),
-        clip: { x: box.x, y: box.y, width: box.width, height: Math.min(box.height, 844) },
-      })
-      console.log('wrote mobile-todo-' + theme)
-    }
+  } finally {
+    await browser.close()
   }
 
-  await page.close()
-  await phonePage.close()
+  console.log('\nDone. Screenshots are in docs/screenshots/')
 }
 
-const browser = await chromium.launch({ headless: true })
-try {
-  await captureLogin(browser)
-  await captureDesignFrames(browser)
-} finally {
-  await browser.close()
-}
+main().catch(async (error) => {
+  await fail(error.stack ?? String(error))
+})

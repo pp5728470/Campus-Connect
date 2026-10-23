@@ -22,7 +22,7 @@ CampusConnect is a classroom management web app (similar to Google Classroom) bu
 - Frontend folders: src/{api, components/ui, components/layout, features/<feature>, hooks, lib, pages, routes, types}.
 
 ## Design rules (very important)
-Visual reference: CampusConnect-UI-Design.html. The UI must look natural and hand-designed, NOT AI-generated.
+Visual reference: docs/design/CampusConnect-UI-Design.html. The UI must look natural and hand-designed, NOT AI-generated.
 - The signature element is the notebook: every class is shown as a notebook cover in its class colour (stitched spine, elastic band, ribbon, folded corner, page edges, ruled paper label with a red margin line). The colour of a class must be consistent everywhere it appears (cards, banner, sidebar spines, planner tabs, to-do items).
 - Fonts: Instrument Serif for page and section headings; Instrument Sans for all interface and body text; Caveat only where a person would write by hand (notebook labels and sticky notes). Nowhere else.
 - One accent colour (ink blue) for actions, links, focus and selected states. Status colours: amber = due soon, brick = missing/errors, green = graded, blue = turned in.
