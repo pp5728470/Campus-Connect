@@ -93,7 +93,7 @@ mysql --version        # 8.x  (or use XAMPP Control Panel)
 ### Option A — Docker (fastest)
 
 ```bash
-git clone <YOUR_REPO_URL> Campus-Connect
+git clone https://github.com/pp5728470/Campus-Connect.git
 cd Campus-Connect
 docker compose up --build
 ```
@@ -122,7 +122,7 @@ Stop: `docker compose down`
 #### 1. Clone
 
 ```bash
-git clone <YOUR_REPO_URL> Campus-Connect
+git clone https://github.com/pp5728470/Campus-Connect.git
 cd Campus-Connect
 ```
 
@@ -403,4 +403,6 @@ Execute now: inspect the machine, fix blockers, start MySQL if needed, start bac
 
 ## License & academic use
 
-Built as an **MCA final mini project**. Use and extend for learning, demos, and viva preparation. Replace `<YOUR_REPO_URL>` above with your Git remote when you share the repo.
+Built as an **MCA final mini project**. Use and extend for learning, demos, and viva preparation.
+
+**Repository:** [github.com/pp5728470/Campus-Connect](https://github.com/pp5728470/Campus-Connect)
