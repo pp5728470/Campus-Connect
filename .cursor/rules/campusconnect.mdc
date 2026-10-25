@@ -16,6 +16,7 @@ CampusConnect is a classroom management web app (similar to Google Classroom) bu
 - Role-based access: TEACHER and STUDENT (plus ADMIN in phase 3). Enforce authorization in the service layer too (e.g., only the class owner can edit a class; only enrolled students can view it).
 - Passwords hashed with BCrypt. Secrets and DB credentials come from application.yml with environment variable overrides.
 - All schema changes via Flyway migrations (V1__init.sql, V2__..., etc.). Never use ddl-auto=update.
+- Never edit a Flyway migration that has already been committed or applied. Put fixes and further schema changes in a new Vn migration. If a checksum mismatch appears after an exceptional rewrite, run `flyway repair` (or delete the bad row from `flyway_schema_history`) once, then restart.
 - Paginate list endpoints.
 
 - Frontend: React 18 + Vite + TypeScript, Tailwind CSS, React Router, TanStack Query, Axios (with an interceptor for JWT and token refresh), React Hook Form + Zod, Lucide icons.

@@ -11,4 +11,9 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, 'src'),
     },
   },
+  server: {
+    host: true,
+    // Allow Cloudflare quick-tunnel Host headers
+    allowedHosts: ['.trycloudflare.com', 'localhost', '127.0.0.1'],
+  },
 })

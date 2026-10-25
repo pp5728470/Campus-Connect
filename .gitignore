@@ -1,27 +1,55 @@
-# Uploads
+# User uploads
 uploads/
 backend/uploads/
 
-# Backend
+# Backend: Java / Maven
 backend/target/
-backend/.mvn/wrapper/maven-wrapper.jar
-backend/*.iml
+target/
+*.class
+*.iml
 backend/.idea/
+.idea/
 
-# Frontend
+# Maven Wrapper
+# Keep the wrapper JAR tracked if your project uses it.
+# backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend: React / Vite
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+node_modules/
+dist/
+coverage/
 
-# Env / secrets
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
 
+# Local Spring Boot configuration
+**/application-local.properties
+**/application-secret.properties
+
+# Local database storage
+mysql-data/
+
 # OS / IDE
 .DS_Store
 Thumbs.db
-*.log
-.idea/
 .vscode/
 *.swp
+
+# Logs
+*.log
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.jks
+
+# Local Spring Boot configuration
+backend/src/main/resources/application-local.yml
+**/application-local.yml
+**/application-local.properties

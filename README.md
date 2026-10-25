@@ -100,7 +100,19 @@ cd backend
 .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
-Flyway applies `V1`, `V2`, and `V3` on startup. The `dev` profile copies sample material files into `UPLOAD_DIR`.
+Flyway applies `V1`–`V5` on startup. The `dev` profile copies sample material files into `UPLOAD_DIR`.
+
+### Database migrations
+
+- Schema changes go only through Flyway scripts under `backend/src/main/resources/db/migration/` (`V1__…`, `V2__…`, …). Do not use `ddl-auto=update`.
+- **Never edit a migration that has already been committed or applied.** Put fixes and later schema work in a new version (for example `V6__…`).
+- Exception note for `V5__cover_banner_colors.sql`: the first committed script used a correlated `UPDATE` that fails on some MySQL/MariaDB builds (including older XAMPP). The file was rewritten once to a portable form. If your database already applied the original `V5` and Flyway reports a **checksum mismatch** after you pull this change, repair once, then restart the app:
+  ```sql
+  -- Option A: Flyway CLI → flyway repair
+  -- Option B: clear the V5 history row (safe here; V5 only remaps banner_color values)
+  DELETE FROM flyway_schema_history WHERE version = '5';
+  ```
+  Fresh databases simply run the current `V5` and need no repair.
 
 ### 3. Frontend
 
